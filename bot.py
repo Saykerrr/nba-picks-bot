@@ -4,6 +4,7 @@ import os
 import hashlib
 import sys
 import time
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -11,14 +12,19 @@ TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID   = os.environ["TELEGRAM_CHAT_ID"]
 ANTHROPIC_API_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
 
-# Lowercase for case-insensitive matching
 TARGET_USERS    = {"taraujo", "novel_calendar5168"}
 TARGET_KEYWORDS = ["NBA Props Daily", "NBA Betting", "NBA Picks"]
 SUBREDDIT       = "sportsbook"
 STATE_FILE      = "state.json"
 LOOKBACK_HOURS  = 30
-HEADERS         = {"User-Agent": "nba-picks-bot/1.0 (personal use, read-only)"}
-MAX_TG_CHARS    = 4000  # Telegram limit is 4096, stay safe
+MAX_TG_CHARS    = 4000
+
+# Browser-like headers to avoid blocks
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/html, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+}
 
 
 # ── State ─────────────────────────────────────────────────────────────────────
@@ -50,69 +56,112 @@ def body_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
 
 
-# ── Reddit JSON API ───────────────────────────────────────────────────────────
-def reddit_get(url):
+# ── Reddit via RSS + JSON fallback ────────────────────────────────────────────
+def safe_get(url, headers=None, timeout=15):
+    """HTTP GET with retries."""
+    h = headers or HEADERS
     for attempt in range(3):
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
+            resp = requests.get(url, headers=h, timeout=timeout)
             if resp.status_code == 429:
-                print(f"  ⏳  Rate limited — waiting 60s (attempt {attempt+1})")
+                print(f"  ⏳  Rate limited — waiting 60s")
                 time.sleep(60)
                 continue
+            if resp.status_code == 403:
+                print(f"  ⚠️  403 Blocked on attempt {attempt+1}: {url}")
+                time.sleep(3)
+                continue
             resp.raise_for_status()
-            return resp.json()
+            return resp
         except Exception as e:
-            print(f"  ⚠️  Request error: {e}", file=sys.stderr)
+            print(f"  ⚠️  Request error (attempt {attempt+1}): {e}", file=sys.stderr)
             time.sleep(5)
     return None
 
 
-def get_new_posts(subreddit, limit=75):
-    data = reddit_get(f"https://www.reddit.com/r/{subreddit}/new.json?limit={limit}")
-    if not data:
+def get_new_posts_rss(subreddit):
+    """Fetch new posts via RSS — less blocked than JSON API."""
+    url  = f"https://www.reddit.com/r/{subreddit}/new/.rss?limit=50"
+    resp = safe_get(url)
+    if not resp:
         return []
-    return data.get("data", {}).get("children", [])
+
+    posts = []
+    try:
+        root = ET.fromstring(resp.content)
+        ns   = {"atom": "http://www.w3.org/2005/Atom"}
+        for entry in root.findall("atom:entry", ns):
+            title   = entry.findtext("atom:title", default="", namespaces=ns)
+            link_el = entry.find("atom:link", ns)
+            link    = link_el.attrib.get("href", "") if link_el is not None else ""
+            updated = entry.findtext("atom:updated", default="", namespaces=ns)
+            # Extract post ID from link e.g. /r/sub/comments/POST_ID/title/
+            post_id = ""
+            parts   = link.rstrip("/").split("/")
+            if "comments" in parts:
+                idx     = parts.index("comments")
+                post_id = parts[idx + 1] if idx + 1 < len(parts) else ""
+            posts.append({
+                "title":    title,
+                "url":      link,
+                "post_id":  post_id,
+                "updated":  updated,
+            })
+    except ET.ParseError as e:
+        print(f"  ⚠️  RSS parse error: {e}", file=sys.stderr)
+
+    return posts
 
 
 def get_top_level_comments(post_id):
-    """Fetch only top-level comments — no sub-comments/replies."""
-    data = reddit_get(f"https://www.reddit.com/comments/{post_id}.json?limit=500&depth=1")
-    if not data or len(data) < 2:
-        return []
-    comments = []
-    for child in data[1].get("data", {}).get("children", []):
-        if child.get("kind") == "t1":
-            comments.append(child["data"])
-    return comments
+    """Fetch top-level comments only (depth=1)."""
+    # Try old.reddit.com first — less aggressive blocking
+    for base in ["https://old.reddit.com", "https://www.reddit.com"]:
+        url  = f"{base}/comments/{post_id}.json?limit=500&depth=1"
+        resp = safe_get(url)
+        if resp:
+            try:
+                data = resp.json()
+                if len(data) < 2:
+                    continue
+                comments = []
+                for child in data[1].get("data", {}).get("children", []):
+                    if child.get("kind") == "t1":
+                        comments.append(child["data"])
+                print(f"    💬  {len(comments)} top-level comments via {base}")
+                return comments
+            except Exception as e:
+                print(f"  ⚠️  Comment parse error: {e}", file=sys.stderr)
+        time.sleep(2)
+    return []
 
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
 def send_telegram(text):
-    """Send a message, automatically splitting if over Telegram's limit."""
     chunks = split_message(text)
     for i, chunk in enumerate(chunks):
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {
-            "chat_id":                  TELEGRAM_CHAT_ID,
-            "text":                     chunk,
-            "parse_mode":               "HTML",
-            "disable_web_page_preview": True,
-        }
-        resp = requests.post(url, json=payload, timeout=15)
+        resp = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={
+                "chat_id":                  TELEGRAM_CHAT_ID,
+                "text":                     chunk,
+                "parse_mode":               "HTML",
+                "disable_web_page_preview": True,
+            },
+            timeout=15,
+        )
         if not resp.ok:
             print(f"  ⚠️  Telegram error {resp.status_code}: {resp.text}", file=sys.stderr)
         else:
-            print(f"  📨  Sent chunk {i+1}/{len(chunks)} ({len(chunk)} chars)")
+            print(f"  📨  Sent part {i+1}/{len(chunks)} ({len(chunk)} chars)")
         if len(chunks) > 1:
             time.sleep(0.5)
 
 
 def split_message(text, limit=MAX_TG_CHARS):
-    """Split a long message at newlines to stay under Telegram's character limit."""
     if len(text) <= limit:
         return [text]
-    chunks = []
-    current = ""
+    chunks, current = [], ""
     for line in text.splitlines(keepends=True):
         if len(current) + len(line) > limit:
             if current:
@@ -122,7 +171,7 @@ def split_message(text, limit=MAX_TG_CHARS):
             current += line
     if current.strip():
         chunks.append(current.rstrip())
-    return chunks if chunks else [text[:limit]]
+    return chunks or [text[:limit]]
 
 
 def escape_html(text):
@@ -131,7 +180,6 @@ def escape_html(text):
 
 # ── Claude Formatting ─────────────────────────────────────────────────────────
 def format_with_claude(username, body, post_title):
-    """Use Claude to reformat a raw Reddit comment into clean Telegram HTML."""
     if not ANTHROPIC_API_KEY:
         return fallback_format(body)
 
@@ -146,15 +194,14 @@ The user u/{username} posted this in the thread "{post_title}":
 Reformat this into a clean, easy-to-read Telegram message using HTML formatting.
 Rules:
 - Use <b>bold</b> for player names, team names, and bet labels
-- Use emojis: 🏀 for games, 📊 for stats/analysis sections, 💡 for notes/reasoning, ⭐ for strong plays
-- Group bets clearly — each bet on its own line
-- Keep ALL the original analysis and reasoning, just make it cleaner
-- For each bet show: Player/Team · Stat line · Over/Under · any odds if mentioned
-- Use ✅ for bets the user is confident about, 🔸 for leans/fades
-- Preserve section headers if any (e.g. "Player Props", "Game Picks")
-- Do NOT add anything that wasn't in the original
-- Do NOT use markdown (no **, no ##) — ONLY these HTML tags: <b>, <i>, <u>
-- Return ONLY the formatted message body, no intro text, no preamble"""
+- Use emojis: 🏀 for games, 📊 for stats/analysis, 💡 for reasoning, ⭐ for strong plays
+- Each bet on its own line showing: Player · Stat · Over/Under line · odds if mentioned
+- Use ✅ for confident bets, 🔸 for leans
+- Keep ALL original analysis and reasoning — just make it cleaner and easier to read
+- Preserve any section headers (e.g. "Player Props", "Game Picks")
+- Do NOT add anything not in the original
+- Use ONLY these HTML tags: <b>, <i> — no markdown, no **, no ##
+- Return ONLY the formatted body, no intro, no preamble"""
 
     try:
         resp = requests.post(
@@ -180,8 +227,8 @@ Rules:
 
 
 def fallback_format(body):
-    safe_body = escape_html(body.strip())
-    return "\n".join(f"  {ln}" for ln in safe_body.splitlines() if ln.strip())
+    safe = escape_html(body.strip())
+    return "\n".join(f"  {ln}" for ln in safe.splitlines() if ln.strip())
 
 
 def build_message(post_title, post_url, username, formatted_body, is_edit=False):
@@ -201,54 +248,39 @@ def parse_bets_with_claude(username, body, post_title, date_str):
         return [{"description": body[:300], "player": None, "team": None,
                  "opponent": None, "bet_type": "other", "stat": None,
                  "line": None, "direction": None, "confidence": None}]
-
-    prompt = f"""Extract all individual NBA bets from this r/sportsbook comment.
-
-Post: {post_title}
-User: u/{username}
-Date: {date_str}
+    prompt = f"""Extract all individual NBA bets from this comment.
+Post: {post_title} | User: u/{username} | Date: {date_str}
 Comment:
 {body}
 
-Return a JSON array. Each bet object must have:
-- "description": concise label (e.g. "LeBron James Over 25.5 PTS")
-- "player": full player name or null
-- "team": team abbreviation or null
-- "opponent": opponent abbreviation or null
-- "bet_type": "player_prop", "spread", "moneyline", "total", "parlay", or "other"
+Return a JSON array. Each object:
+- "description": concise label e.g. "LeBron James Over 25.5 PTS"
+- "player": full name or null
+- "team": abbreviation or null
+- "opponent": abbreviation or null
+- "bet_type": "player_prop","spread","moneyline","total","parlay","other"
 - "stat": "PTS","REB","AST","3PM","BLK","STL","PRA","PR","PA","RA" or null
-- "line": numeric line value or null
-- "direction": "over", "under", "yes", "no" or null
-- "confidence": "lean", "like", "play", "strong", or "fade" or null
-
-Return ONLY a valid JSON array, no markdown, no explanation. Return [] if no bets found."""
+- "line": numeric or null
+- "direction": "over","under","yes","no" or null
+- "confidence": "lean","like","play","strong","fade" or null
+Return ONLY valid JSON array, no markdown. Return [] if no bets."""
 
     try:
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
-            headers={
-                "Content-Type":      "application/json",
-                "x-api-key":         ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-            },
-            json={
-                "model":      "claude-haiku-4-5-20251001",
-                "max_tokens": 1000,
-                "messages":   [{"role": "user", "content": prompt}],
-            },
+            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
+                     "anthropic-version": "2023-06-01"},
+            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 1000,
+                  "messages": [{"role": "user", "content": prompt}]},
             timeout=30,
         )
         if resp.ok:
-            raw = resp.json()["content"][0]["text"].strip()
-            raw = raw.lstrip("```json").lstrip("```").rstrip("```").strip()
+            raw = resp.json()["content"][0]["text"].strip().lstrip("```json").lstrip("```").rstrip("```").strip()
             bets = json.loads(raw)
             return bets if isinstance(bets, list) else []
     except Exception as e:
         print(f"  ⚠️  Claude parse error: {e}", file=sys.stderr)
-
-    return [{"description": body[:300], "player": None, "team": None,
-             "opponent": None, "bet_type": "other", "stat": None,
-             "line": None, "direction": None, "confidence": None}]
+    return []
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -260,30 +292,24 @@ def main():
     today  = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     sends  = 0
 
-    posts = get_new_posts(SUBREDDIT)
-    print(f"  📥  Fetched {len(posts)} posts from r/{SUBREDDIT}")
+    posts = get_new_posts_rss(SUBREDDIT)
+    print(f"  📥  Fetched {len(posts)} posts via RSS from r/{SUBREDDIT}")
 
-    for post_child in posts:
-        post  = post_child.get("data", {})
-        title = post.get("title", "")
+    for post in posts:
+        title   = post.get("title", "")
+        post_id = post.get("post_id", "")
+        post_url= post.get("url", "")
 
-        created = datetime.fromtimestamp(post.get("created_utc", 0), tz=timezone.utc)
-        if created < cutoff:
-            continue
         if not any(kw.lower() in title.lower() for kw in TARGET_KEYWORDS):
             continue
 
-        post_id  = post.get("id")
-        post_url = f"https://reddit.com{post.get('permalink', '')}"
         print(f"  📌  Scanning: {title[:70]}")
 
         comments = get_top_level_comments(post_id)
-        print(f"  💬  {len(comments)} top-level comments found")
         time.sleep(2)
 
         for comment in comments:
             author = comment.get("author", "")
-            # Case-insensitive username match
             if author.lower() not in TARGET_USERS:
                 continue
 
@@ -297,48 +323,37 @@ def main():
             is_edited = not is_new and state["seen"].get(cid) != chash
 
             if not (is_new or is_edited):
-                print(f"    ⏭️   Already seen, skipping")
+                print(f"    ⏭️   Already seen")
                 continue
 
             print(f"    {'✅' if is_new else '✏️ '} {'New' if is_new else 'Edited'} — formatting...")
-
-            formatted_body = format_with_claude(author, body, title)
-            message        = build_message(title, post_url, author, formatted_body, is_edit=is_edited)
+            formatted = format_with_claude(author, body, title)
+            message   = build_message(title, post_url, author, formatted, is_edit=is_edited)
 
             send_telegram(message)
             state["seen"][cid] = chash
             sends += 1
 
-            # Parse and store bets for grading
             if is_new:
                 bets = parse_bets_with_claude(author, body, title, today)
-                state["pending_bets"] = [
-                    b for b in state["pending_bets"]
-                    if not b.get("id", "").startswith(f"{cid}_")
-                ]
+                state["pending_bets"] = [b for b in state["pending_bets"]
+                                          if not b.get("id", "").startswith(f"{cid}_")]
                 stored = 0
                 for i, bet in enumerate(bets):
                     if not bet.get("description"):
                         continue
                     state["pending_bets"].append({
-                        "id":          f"{cid}_{i}",
-                        "user":        author,
-                        "date":        today,
-                        "post_title":  title,
-                        "post_url":    post_url,
+                        "id": f"{cid}_{i}", "user": author, "date": today,
+                        "post_title": title, "post_url": post_url,
                         "description": bet.get("description", body[:100]),
-                        "player":      bet.get("player"),
-                        "team":        bet.get("team"),
-                        "opponent":    bet.get("opponent"),
-                        "bet_type":    bet.get("bet_type", "other"),
-                        "stat":        bet.get("stat"),
-                        "line":        bet.get("line"),
-                        "direction":   bet.get("direction"),
-                        "confidence":  bet.get("confidence"),
-                        "result":      None,
+                        "player": bet.get("player"), "team": bet.get("team"),
+                        "opponent": bet.get("opponent"), "bet_type": bet.get("bet_type", "other"),
+                        "stat": bet.get("stat"), "line": bet.get("line"),
+                        "direction": bet.get("direction"), "confidence": bet.get("confidence"),
+                        "result": None,
                     })
                     stored += 1
-                print(f"    💾  Stored {stored} bet(s) for grading")
+                print(f"    💾  Stored {stored} bet(s)")
 
     save_state(state)
     print(f"✅  Done — {sends} message(s) sent.")
