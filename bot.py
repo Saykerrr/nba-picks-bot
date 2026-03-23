@@ -4,6 +4,7 @@ import os
 import hashlib
 import sys
 import time
+import re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 
@@ -20,7 +21,7 @@ MAX_TG_CHARS    = 4000
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "application/rss+xml, application/xml, text/xml, */*",
+    "Accept": "*/*",
     "Accept-Language": "en-US,en;q=0.9",
 }
 
@@ -32,7 +33,6 @@ def load_state():
     return {}
 
 def save_state(state):
-    # Prune seen comments older than 7 days to keep file small
     if "seen_comments" in state:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
         state["seen_comments"] = {
@@ -43,14 +43,13 @@ def save_state(state):
         json.dump(state, f, indent=2)
 
 def ensure_keys(state):
-    defaults = {
-        "seen_comments": {},   # comment_id -> {hash, date}
-        "sent_today": {},      # "user:YYYY-MM-DD" -> True
+    for k, v in {
+        "seen_comments": {},
+        "sent_today": {},
         "pending_bets": [],
         "graded_bets": [],
         "stats": {},
-    }
-    for k, v in defaults.items():
+    }.items():
         if k not in state:
             state[k] = v
     return state
@@ -60,6 +59,15 @@ def body_hash(text):
 
 def today_utc():
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+def normalize_author(raw):
+    """Strip /u/ or u/ prefix, lowercase."""
+    name = raw.strip()
+    if name.startswith("/u/"):
+        name = name[3:]
+    elif name.startswith("u/"):
+        name = name[2:]
+    return name.lower()
 
 # ── RSS helpers ───────────────────────────────────────────────────────────────
 ATOM_NS = "http://www.w3.org/2005/Atom"
@@ -73,7 +81,7 @@ def fetch_rss(url, retries=3):
                 time.sleep(30)
                 continue
             if resp.status_code in (403, 404):
-                print(f"  ⚠️  {resp.status_code} on {url}")
+                print(f"  ⚠️  HTTP {resp.status_code} for {url}")
                 return None
             resp.raise_for_status()
             return resp.content
@@ -83,15 +91,14 @@ def fetch_rss(url, retries=3):
     return None
 
 def parse_atom(content):
-    """Parse Atom RSS feed, return list of entry dicts."""
     if not content:
         return []
     try:
         root    = ET.fromstring(content)
         entries = []
         for entry in root.findall(f"{{{ATOM_NS}}}entry"):
-            link_el  = entry.find(f"{{{ATOM_NS}}}link")
-            author_el= entry.find(f"{{{ATOM_NS}}}author/{{{ATOM_NS}}}name")
+            link_el    = entry.find(f"{{{ATOM_NS}}}link")
+            author_el  = entry.find(f"{{{ATOM_NS}}}author/{{{ATOM_NS}}}name")
             content_el = entry.find(f"{{{ATOM_NS}}}content")
             entries.append({
                 "title":   entry.findtext(f"{{{ATOM_NS}}}title", ""),
@@ -107,7 +114,6 @@ def parse_atom(content):
         return []
 
 def extract_post_id(url):
-    """Extract post ID from a Reddit URL."""
     parts = url.rstrip("/").split("/")
     if "comments" in parts:
         idx = parts.index("comments")
@@ -116,28 +122,33 @@ def extract_post_id(url):
     return ""
 
 def extract_comment_id(entry_id):
-    """Extract comment ID from Atom entry id like t1_COMMENTID."""
-    # id looks like: t1_abc123 or full URL ending in t1_abc123
-    for part in entry_id.replace("/", " ").split():
-        if part.startswith("t1_"):
-            return part[3:]
-    # fallback: last path segment
+    # entry id looks like: t1_abc1234 or a URL containing it
+    match = re.search(r't1_([a-z0-9]+)', entry_id)
+    if match:
+        return match.group(1)
     return entry_id.rstrip("/").split("/")[-1]
 
 def is_today(updated_str):
-    """Check if an RSS updated timestamp is from today (UTC)."""
     if not updated_str:
         return False
     try:
-        # Format: 2026-03-23T20:00:00+00:00
         dt = datetime.fromisoformat(updated_str.replace("Z", "+00:00"))
         return dt.date() == datetime.now(timezone.utc).date()
     except Exception:
         return False
 
-# ── Get posts ─────────────────────────────────────────────────────────────────
+def strip_html(html):
+    text = html
+    text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
+    text = text.replace("&#39;", "'").replace("&quot;", '"')
+    text = text.replace("<br>", "\n").replace("<br/>", "\n").replace("<br />", "\n")
+    text = re.sub(r"<(?:p|div|li|tr)[^>]*>", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+# ── Posts ─────────────────────────────────────────────────────────────────────
 def get_todays_matching_posts():
-    """Return today's NBA betting/props posts from r/sportsbook via RSS."""
     content = fetch_rss(f"https://www.reddit.com/r/{SUBREDDIT}/new/.rss?limit=50")
     entries = parse_atom(content)
     print(f"  📥  Fetched {len(entries)} posts from RSS")
@@ -148,7 +159,7 @@ def get_todays_matching_posts():
         if not any(kw in title for kw in TARGET_KEYWORDS):
             continue
         if not is_today(entry["updated"]):
-            print(f"  ⏭️   Skipping old post: {entry['title'][:50]}")
+            print(f"  ⏭️   Old post skipped: {entry['title'][:50]}")
             continue
         post_id = extract_post_id(entry["link"])
         if post_id:
@@ -158,54 +169,39 @@ def get_todays_matching_posts():
                 "post_id": post_id,
             })
             print(f"  📌  Today's match: {entry['title'][:60]}")
-
     return matching
 
-# ── Get comments via RSS ──────────────────────────────────────────────────────
-def get_comments_rss(post_id, post_title):
-    """Fetch top-level comments for a post using its comment RSS feed."""
-    # Reddit comment RSS URL
+# ── Comments ──────────────────────────────────────────────────────────────────
+def get_comments_rss(post_id):
     url     = f"https://www.reddit.com/comments/{post_id}/.rss"
     content = fetch_rss(url)
     entries = parse_atom(content)
-    time.sleep(2)  # Be polite
+    time.sleep(2)
 
-    # The first entry is usually the post itself — filter it out
-    # Comment entries have authors and content
     comments = []
     for entry in entries:
-        author = entry.get("author", "").strip()
-        # Skip the post author entry (usually has no author or is the subreddit)
-        if not author or author.lower() in ("", "sportsbook"):
+        raw_author = entry.get("author", "")
+        if not raw_author:
             continue
-        # Extract plain text from HTML content
-        raw_content = entry.get("content", "")
-        body = strip_html(raw_content).strip()
-        if not body:
+        body = strip_html(entry.get("content", "")).strip()
+        if not body or len(body) < 10:
             continue
         cid = extract_comment_id(entry.get("id", ""))
         comments.append({
-            "author": author,
-            "body":   body,
-            "id":     cid,
-            "link":   entry.get("link", ""),
+            "author_raw": raw_author,
+            "author":     normalize_author(raw_author),
+            "body":       body,
+            "id":         cid,
+            "link":       entry.get("link", ""),
         })
 
-    print(f"    💬  {len(comments)} comments fetched via RSS")
-    return comments
+    print(f"    💬  {len(comments)} comments fetched")
 
-def strip_html(html):
-    """Remove HTML tags from a string."""
-    import re
-    # Decode common HTML entities
-    text = html.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&").replace("&#39;", "'").replace("&quot;", '"').replace("<br>", "\n").replace("<br/>", "\n").replace("<br />", "\n")
-    # Replace paragraph/div tags with newlines
-    text = re.sub(r"<(?:p|div|li|tr)[^>]*>", "\n", text, flags=re.IGNORECASE)
-    # Remove all remaining tags
-    text = re.sub(r"<[^>]+>", "", text)
-    # Clean up excessive whitespace
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
+    # Debug: show all unique authors found
+    authors_found = sorted(set(c["author"] for c in comments))
+    print(f"    👥  Authors in thread: {authors_found[:15]}")  # show first 15
+
+    return comments
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
 def send_telegram(text):
@@ -259,17 +255,17 @@ u/{username} posted this in "{post_title}":
 {body}
 ---
 
-Reformat into a clean Telegram message using HTML only.
+Reformat into a clean, easy-to-read Telegram message using HTML only.
 Rules:
 - Use <b>bold</b> for player names, team names, bet labels
-- Emojis: 🏀 games, 📊 stats/analysis, 💡 reasoning, ⭐ strong plays
-- Each bet on its own line: Player · Stat · Over/Under · line · odds if mentioned
+- Emojis: 🏀 for game matchups, 📊 for stats/analysis sections, 💡 for reasoning, ⭐ for strong plays
+- Each individual bet on its own line: Player · Stat · Over/Under line · odds if mentioned
 - ✅ for confident bets, 🔸 for leans/fades
-- Keep ALL original analysis and reasoning
-- Preserve section headers
+- Keep ALL original analysis and reasoning — just make it cleaner
+- Preserve section headers if any
 - Do NOT add anything not in the original
 - ONLY use <b> and <i> HTML tags — no markdown, no **, no ##
-- Return ONLY the formatted body, no intro"""
+- Return ONLY the formatted body, no intro, no preamble"""
 
     try:
         resp = requests.post(
@@ -344,8 +340,7 @@ Return [] if no clear bets. No markdown, no explanation."""
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    print(f"🤖  Bot starting — {now_str}")
+    print(f"🤖  Bot starting — {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
 
     state = ensure_keys(load_state())
     today = today_utc()
@@ -364,27 +359,29 @@ def main():
         post_url = post["url"]
         post_id  = post["post_id"]
 
-        comments = get_comments_rss(post_id, title)
+        comments = get_comments_rss(post_id)
 
         for comment in comments:
-            author = comment["author"].strip()
-            if author.lower() not in TARGET_USERS:
+            author_key = comment["author"]  # already normalized/lowercase
+            author_display = comment["author_raw"].lstrip("/u/").lstrip("u/")
+
+            if author_key not in TARGET_USERS:
                 continue
 
-            print(f"  🎯  Found comment from u/{author}")
+            print(f"  🎯  Found comment from u/{author_display}")
 
             cid   = comment["id"]
             body  = comment["body"]
             chash = body_hash(body)
 
-            # ── Once-per-day-per-user guard ───────────────────────────────
-            sent_key = f"{author.lower()}:{today}"
+            # Once-per-day-per-user guard
+            sent_key = f"{author_key}:{today}"
             if state["sent_today"].get(sent_key):
-                print(f"    ⏭️   Already sent u/{author}'s picks today — skipping")
+                print(f"    ⏭️   Already sent u/{author_display}'s picks today")
                 continue
 
-            # ── Duplicate / edit detection ────────────────────────────────
-            seen = state["seen_comments"].get(cid, {})
+            # Duplicate / edit detection
+            seen      = state["seen_comments"].get(cid, {})
             is_new    = not seen
             is_edited = not is_new and seen.get("hash") != chash
 
@@ -392,21 +389,18 @@ def main():
                 print(f"    ⏭️   Already seen and unchanged")
                 continue
 
-            print(f"    {'✅' if is_new else '✏️ '} {'New' if is_new else 'Edited'} — formatting with Claude...")
-            formatted = format_with_claude(author, body, title)
-            message   = build_message(title, post_url, author, formatted, is_edit=is_edited)
+            print(f"    {'✅' if is_new else '✏️ '} {'New' if is_new else 'Edited'} — formatting...")
+            formatted = format_with_claude(author_display, body, title)
+            message   = build_message(title, post_url, author_display, formatted, is_edit=is_edited)
 
             send_telegram(message)
 
-            # Update state
             state["seen_comments"][cid] = {"hash": chash, "date": today}
             state["sent_today"][sent_key] = True
             sends += 1
 
-            # Parse bets for grading (new comments only)
             if is_new:
-                bets = parse_bets_with_claude(author, body, title, today)
-                # Remove old entries for this comment
+                bets = parse_bets_with_claude(author_display, body, title, today)
                 state["pending_bets"] = [
                     b for b in state["pending_bets"]
                     if not b.get("id", "").startswith(f"{cid}_")
@@ -416,7 +410,7 @@ def main():
                     if not bet.get("description"):
                         continue
                     state["pending_bets"].append({
-                        "id": f"{cid}_{i}", "user": author, "date": today,
+                        "id": f"{cid}_{i}", "user": author_display, "date": today,
                         "post_title": title, "post_url": post_url,
                         "description": bet.get("description", ""),
                         "player": bet.get("player"), "team": bet.get("team"),
@@ -428,7 +422,7 @@ def main():
                         "result": None,
                     })
                     stored += 1
-                print(f"    💾  Stored {stored} bet(s) for grading")
+                print(f"    💾  Stored {stored} bet(s)")
 
     save_state(state)
     print(f"✅  Done — {sends} message(s) sent.")
