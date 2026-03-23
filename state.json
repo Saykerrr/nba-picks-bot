@@ -3,5 +3,7 @@
   "pending_bets": [],
   "graded_bets": [],
   "stats": {},
-  "tracking_start": "2026-03-22"
+  "tracking_start": "2026-03-22",
+  "seen_comments": {},
+  "sent_today": {}
 }
