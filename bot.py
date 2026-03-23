@@ -61,12 +61,10 @@ def today_utc():
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 def normalize_author(raw):
-    """Strip /u/ or u/ prefix, lowercase."""
     name = raw.strip()
-    if name.startswith("/u/"):
-        name = name[3:]
-    elif name.startswith("u/"):
-        name = name[2:]
+    for prefix in ("/u/", "u/"):
+        if name.startswith(prefix):
+            name = name[len(prefix):]
     return name.lower()
 
 # ── RSS helpers ───────────────────────────────────────────────────────────────
@@ -94,7 +92,7 @@ def parse_atom(content):
     if not content:
         return []
     try:
-        root    = ET.fromstring(content)
+        root = ET.fromstring(content)
         entries = []
         for entry in root.findall(f"{{{ATOM_NS}}}entry"):
             link_el    = entry.find(f"{{{ATOM_NS}}}link")
@@ -122,7 +120,6 @@ def extract_post_id(url):
     return ""
 
 def extract_comment_id(entry_id):
-    # entry id looks like: t1_abc1234 or a URL containing it
     match = re.search(r't1_([a-z0-9]+)', entry_id)
     if match:
         return match.group(1)
@@ -139,9 +136,9 @@ def is_today(updated_str):
 
 def strip_html(html):
     text = html
-    text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
-    text = text.replace("&#39;", "'").replace("&quot;", '"')
-    text = text.replace("<br>", "\n").replace("<br/>", "\n").replace("<br />", "\n")
+    for old, new in [("&lt;","<"),("&gt;",">"),("&amp;","&"),("&#39;","'"),("&quot;",'"'),
+                     ("<br>","\n"),("<br/>","\n"),("<br />","\n")]:
+        text = text.replace(old, new)
     text = re.sub(r"<(?:p|div|li|tr)[^>]*>", "\n", text, flags=re.IGNORECASE)
     text = re.sub(r"<[^>]+>", "", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
@@ -152,7 +149,6 @@ def get_todays_matching_posts():
     content = fetch_rss(f"https://www.reddit.com/r/{SUBREDDIT}/new/.rss?limit=50")
     entries = parse_atom(content)
     print(f"  📥  Fetched {len(entries)} posts from RSS")
-
     matching = []
     for entry in entries:
         title = entry["title"].lower()
@@ -163,21 +159,15 @@ def get_todays_matching_posts():
             continue
         post_id = extract_post_id(entry["link"])
         if post_id:
-            matching.append({
-                "title":   entry["title"],
-                "url":     entry["link"],
-                "post_id": post_id,
-            })
+            matching.append({"title": entry["title"], "url": entry["link"], "post_id": post_id})
             print(f"  📌  Today's match: {entry['title'][:60]}")
     return matching
 
 # ── Comments ──────────────────────────────────────────────────────────────────
 def get_comments_rss(post_id):
-    url     = f"https://www.reddit.com/comments/{post_id}/.rss"
-    content = fetch_rss(url)
+    content = fetch_rss(f"https://www.reddit.com/comments/{post_id}/.rss")
     entries = parse_atom(content)
     time.sleep(2)
-
     comments = []
     for entry in entries:
         raw_author = entry.get("author", "")
@@ -194,13 +184,9 @@ def get_comments_rss(post_id):
             "id":         cid,
             "link":       entry.get("link", ""),
         })
-
     print(f"    💬  {len(comments)} comments fetched")
-
-    # Debug: show all unique authors found
     authors_found = sorted(set(c["author"] for c in comments))
-    print(f"    👥  Authors in thread: {authors_found[:15]}")  # show first 15
-
+    print(f"    👥  Authors: {authors_found[:20]}")
     return comments
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
@@ -222,7 +208,7 @@ def send_telegram(text):
         else:
             print(f"  📨  Sent part {i+1}/{len(chunks)} ({len(chunk)} chars)")
         if len(chunks) > 1:
-            time.sleep(0.5)
+            time.sleep(1)
 
 def split_message(text, limit=MAX_TG_CHARS):
     if len(text) <= limit:
@@ -244,28 +230,43 @@ def escape_html(text):
 
 # ── Claude Formatting ─────────────────────────────────────────────────────────
 def format_with_claude(username, body, post_title):
+    print(f"    🤖  Formatting with Claude (API key: {'✅ set' if ANTHROPIC_API_KEY else '❌ MISSING'})")
+
     if not ANTHROPIC_API_KEY:
-        return escape_html(body.strip())
+        return fallback_format(body)
 
-    prompt = f"""You are formatting an NBA betting picks post from Reddit for Telegram.
+    prompt = f"""You are formatting an NBA betting analyst's Reddit post for Telegram messenger.
 
-u/{username} posted this in "{post_title}":
+The analyst u/{username} wrote this post in the thread "{post_title}":
 
 ---
 {body}
 ---
 
-Reformat into a clean, easy-to-read Telegram message using HTML only.
-Rules:
-- Use <b>bold</b> for player names, team names, bet labels
-- Emojis: 🏀 for game matchups, 📊 for stats/analysis sections, 💡 for reasoning, ⭐ for strong plays
-- Each individual bet on its own line: Player · Stat · Over/Under line · odds if mentioned
-- ✅ for confident bets, 🔸 for leans/fades
-- Keep ALL original analysis and reasoning — just make it cleaner
-- Preserve section headers if any
-- Do NOT add anything not in the original
-- ONLY use <b> and <i> HTML tags — no markdown, no **, no ##
-- Return ONLY the formatted body, no intro, no preamble"""
+Transform this into a beautifully formatted Telegram message. Follow these rules strictly:
+
+STRUCTURE:
+- Start with a one-line header summarizing the post (e.g. "NBA Monday Night Writeup 🏀")
+- Separate each game matchup with a blank line
+- Each game gets its own section header in bold
+
+FORMATTING:
+- Use <b>Player Name</b> for every player name mentioned
+- Use <b>Team vs Team</b> for every matchup header
+- Emojis to use: 🏀 matchup headers, ✅ confident bets/plays, 🔸 leans, ⚠️ injury notes, 📊 stats/trends, 💡 reasoning/analysis, ⭐ strong plays, 🎯 specific picks
+- Put each distinct bet/pick on its own line with a ✅ or 🔸 prefix
+- Put injury/lineup news on its own line with ⚠️
+- Put supporting stats on their own line with 📊
+
+CONTENT:
+- Keep ALL the original analysis word-for-word — do not summarize or remove anything
+- You may lightly rephrase for clarity but preserve all data, numbers, odds
+- Preserve the analyst's tone and confidence level
+
+OUTPUT:
+- Use ONLY <b> and <i> HTML tags — Telegram only supports these
+- No markdown (no **, no __, no ##)
+- Return ONLY the formatted message, nothing else"""
 
     try:
         resp = requests.post(
@@ -277,17 +278,33 @@ Rules:
             },
             json={
                 "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 2000,
+                "max_tokens": 3000,
                 "messages": [{"role": "user", "content": prompt}],
             },
-            timeout=30,
+            timeout=40,
         )
         if resp.ok:
-            return resp.json()["content"][0]["text"].strip()
+            result = resp.json()["content"][0]["text"].strip()
+            print(f"    ✅  Claude formatted successfully ({len(result)} chars)")
+            return result
+        else:
+            print(f"    ⚠️  Claude API error: {resp.status_code} {resp.text}", file=sys.stderr)
     except Exception as e:
-        print(f"  ⚠️  Claude format error: {e}", file=sys.stderr)
+        print(f"    ⚠️  Claude error: {e}", file=sys.stderr)
 
-    return escape_html(body.strip())
+    return fallback_format(body)
+
+def fallback_format(body):
+    """Basic formatting when Claude is unavailable."""
+    lines = body.strip().splitlines()
+    formatted = []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            formatted.append("")
+            continue
+        formatted.append(escape_html(line))
+    return "\n".join(formatted)
 
 def build_message(post_title, post_url, username, formatted_body, is_edit=False):
     edit_tag = "  ✏️ <i>(edited)</i>" if is_edit else ""
@@ -319,7 +336,6 @@ Return JSON array only. Each object:
 - "direction": "over","under" or null
 - "confidence": "lean","like","play","strong","fade" or null
 Return [] if no clear bets. No markdown, no explanation."""
-
     try:
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
@@ -330,8 +346,7 @@ Return [] if no clear bets. No markdown, no explanation."""
             timeout=30,
         )
         if resp.ok:
-            raw = resp.json()["content"][0]["text"].strip()
-            raw = raw.replace("```json", "").replace("```", "").strip()
+            raw = resp.json()["content"][0]["text"].strip().replace("```json","").replace("```","").strip()
             bets = json.loads(raw)
             return bets if isinstance(bets, list) else []
     except Exception as e:
@@ -341,6 +356,7 @@ Return [] if no clear bets. No markdown, no explanation."""
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     print(f"🤖  Bot starting — {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
+    print(f"    Anthropic key: {'✅ set' if ANTHROPIC_API_KEY else '❌ NOT SET — formatting will be plain text'}")
 
     state = ensure_keys(load_state())
     today = today_utc()
@@ -350,7 +366,7 @@ def main():
     print(f"  🎯  {len(posts)} matching post(s) for today")
 
     if not posts:
-        print("  💤  No matching posts today yet — done.")
+        print("  💤  No matching posts today — done.")
         save_state(state)
         return
 
@@ -362,8 +378,8 @@ def main():
         comments = get_comments_rss(post_id)
 
         for comment in comments:
-            author_key = comment["author"]  # already normalized/lowercase
-            author_display = comment["author_raw"].lstrip("/u/").lstrip("u/")
+            author_key     = comment["author"]
+            author_display = comment["author_raw"].strip().lstrip("/u/").lstrip("u/")
 
             if author_key not in TARGET_USERS:
                 continue
@@ -377,10 +393,9 @@ def main():
             # Once-per-day-per-user guard
             sent_key = f"{author_key}:{today}"
             if state["sent_today"].get(sent_key):
-                print(f"    ⏭️   Already sent u/{author_display}'s picks today")
+                print(f"    ⏭️   Already sent u/{author_display}'s picks today — skipping")
                 continue
 
-            # Duplicate / edit detection
             seen      = state["seen_comments"].get(cid, {})
             is_new    = not seen
             is_edited = not is_new and seen.get("hash") != chash
@@ -389,12 +404,11 @@ def main():
                 print(f"    ⏭️   Already seen and unchanged")
                 continue
 
-            print(f"    {'✅' if is_new else '✏️ '} {'New' if is_new else 'Edited'} — formatting...")
+            print(f"    {'✅' if is_new else '✏️ '} {'New' if is_new else 'Edited'} comment detected")
             formatted = format_with_claude(author_display, body, title)
             message   = build_message(title, post_url, author_display, formatted, is_edit=is_edited)
 
             send_telegram(message)
-
             state["seen_comments"][cid] = {"hash": chash, "date": today}
             state["sent_today"][sent_key] = True
             sends += 1
