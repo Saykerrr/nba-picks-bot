@@ -8,9 +8,14 @@
     "oc2g706": {
       "hash": "76651cba30be29aef6e9d84e281205e8",
       "date": "2026-03-23"
+    },
+    "oc3b4e4": {
+      "hash": "851502af055cfac0c1b700636de09fb3",
+      "date": "2026-03-23"
     }
   },
   "sent_today": {
-    "novel_calendar5168:2026-03-23": true
+    "novel_calendar5168:2026-03-23": true,
+    "taraujo:2026-03-23": true
   }
 }
