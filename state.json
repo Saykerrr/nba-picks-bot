@@ -8,7 +8,13 @@
     "oc2g706": {
       "hash": "76651cba30be29aef6e9d84e281205e8",
       "date": "2026-03-23"
+    },
+    "oc2x5xl": {
+      "hash": "06d83539d30922b442597ea9fbc8b131",
+      "date": "2026-03-23"
     }
   },
-  "sent_today": {}
+  "sent_today": {
+    "novel_calendar5168:2026-03-23": true
+  }
 }
