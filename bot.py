@@ -377,14 +377,18 @@ def main():
 
         comments = get_comments_rss(post_id)
 
+        # Group comments by user, pick the longest one (main writeup)
+        user_comments = {}
         for comment in comments:
-            author_key     = comment["author"]
-            author_display = comment["author_raw"].strip().lstrip("/u/").lstrip("u/")
-
+            author_key = comment["author"]
             if author_key not in TARGET_USERS:
                 continue
+            if author_key not in user_comments or len(comment["body"]) > len(user_comments[author_key]["body"]):
+                user_comments[author_key] = comment
 
-            print(f"  🎯  Found comment from u/{author_display}")
+        for author_key, comment in user_comments.items():
+            author_display = comment["author_raw"].strip().lstrip("/u/").lstrip("u/")
+            print(f"  🎯  Found main comment from u/{author_display} ({len(comment['body'])} chars)")
 
             cid   = comment["id"]
             body  = comment["body"]
