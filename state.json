@@ -4,15 +4,6 @@
   "graded_bets": [],
   "stats": {},
   "tracking_start": "2026-03-22",
-  "seen_comments": {
-    "oc2g706": {
-      "hash": "76651cba30be29aef6e9d84e281205e8",
-      "date": "2026-03-23"
-    },
-    "oc2x5xl": {
-      "hash": "06d83539d30922b442597ea9fbc8b131",
-      "date": "2026-03-23"
-    }
-  },
+  "seen_comments": {},
   "sent_today": {}
 }
