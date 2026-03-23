@@ -1,1 +1,7 @@
-{"seen": {}, "pending_bets": [], "graded_bets": [], "stats": {}}
+{
+  "seen": {},
+  "pending_bets": [],
+  "graded_bets": [],
+  "stats": {},
+  "tracking_start": "2026-03-22"
+}
