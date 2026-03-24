@@ -285,23 +285,35 @@ def format_daily_results(graded, date_str):
     lines = [f"📊 <b>Bet Results — {date_str}</b>", "━" * 30]
 
     for user, bets in by_user.items():
-        w = sum(1 for b in bets if b["result"] == "win")
-        l = sum(1 for b in bets if b["result"] == "loss")
-        p = sum(1 for b in bets if b["result"] == "push")
-        u = sum(1 for b in bets if b["result"] == "unknown")
+        straights = [b for b in bets if b.get("bet_type") != "parlay"]
+        parlays   = [b for b in bets if b.get("bet_type") == "parlay"]
+
+        w = sum(1 for b in straights if b["result"] == "win")
+        l = sum(1 for b in straights if b["result"] == "loss")
+        p = sum(1 for b in straights if b["result"] == "push")
+        u = sum(1 for b in straights if b["result"] == "unknown")
 
         record = f"{w}W / {l}L"
         if p: record += f" / {p}P"
 
         lines.append(f"\n💬 <b>u/{user}</b>  ·  {record}")
-        for bet in bets:
-            icon = RESULT_ICON.get(bet["result"], "❓")
-            desc = escape_html(bet.get("description", "Unknown bet"))
-            conf = bet.get("confidence")
-            conf_tag = f"  <i>({conf})</i>" if conf else ""
-            lines.append(f"  {icon} {desc}{conf_tag}")
-        if u:
-            lines.append(f"\n  ❓ {u} bet(s) could not be graded automatically")
+
+        if straights:
+            lines.append("\n<b>Individual Plays:</b>")
+            for bet in straights:
+                icon = RESULT_ICON.get(bet["result"], "❓")
+                desc = escape_html(bet.get("description", "Unknown bet"))
+                conf = bet.get("confidence")
+                conf_tag = f"  <i>({conf})</i>" if conf else ""
+                lines.append(f"  {icon} {desc}{conf_tag}")
+            if u:
+                lines.append(f"\n  ❓ {u} bet(s) could not be auto-graded")
+
+        if parlays:
+            lines.append("\n<b>Parlays:</b>")
+            for bet in parlays:
+                desc = escape_html(bet.get("description", "Parlay"))
+                lines.append(f"  🎰 {desc}  <i>(grade manually)</i>")
 
     return "\n".join(lines)
 
@@ -382,23 +394,30 @@ def main():
     # Grade
     graded = []
     for bet in pending:
-        result = grade_bet(bet, player_stats, game_results)
-        bet["result"]       = result
-        bet["graded_date"]  = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        # Parlays can't be auto-graded — mark as unknown for manual check
+        if bet.get("bet_type") == "parlay":
+            result = "unknown"
+        else:
+            result = grade_bet(bet, player_stats, game_results)
+
+        bet["result"]      = result
+        bet["graded_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         graded.append(bet)
 
-        user = bet["user"]
-        if user not in state["stats"]:
-            state["stats"][user] = {"wins": 0, "losses": 0, "pushes": 0}
-        if result == "win":
-            state["stats"][user]["wins"]   += 1
-        elif result == "loss":
-            state["stats"][user]["losses"] += 1
-        elif result == "push":
-            state["stats"][user]["pushes"] += 1
+        # Only count straight bets in stats (not parlays)
+        if bet.get("bet_type") != "parlay":
+            user = bet["user"]
+            if user not in state["stats"]:
+                state["stats"][user] = {"wins": 0, "losses": 0, "pushes": 0}
+            if result == "win":
+                state["stats"][user]["wins"]   += 1
+            elif result == "loss":
+                state["stats"][user]["losses"] += 1
+            elif result == "push":
+                state["stats"][user]["pushes"] += 1
 
         icon = RESULT_ICON.get(result, "❓")
-        print(f"  {icon}  {bet.get('description', '?')[:55]}  →  {result}")
+        print(f"  {icon}  {bet.get('description', '?')[:60]}  →  {result}")
         time.sleep(0.3)
 
     # Move from pending → graded
