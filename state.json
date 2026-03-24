@@ -1,6 +1,13 @@
 {
-  "seen_comments": {},
-  "sent_today": {},
+  "seen_comments": {
+    "ocah17l": {
+      "hash": "248ec290f7b7d83fc8b872dacafdb936",
+      "date": "2026-03-24"
+    }
+  },
+  "sent_today": {
+    "novel_calendar5168:2026-03-24": true
+  },
   "graded_bets": [
     {
       "id": "manual_t1_0",
@@ -542,5 +549,74 @@
     }
   },
   "tracking_start": "2026-03-23",
-  "pending_bets": []
+  "pending_bets": [
+    {
+      "id": "ocah17l_0",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Dejounte Murray Over 11.5 RA",
+      "player": "Dejounte Murray",
+      "team": "NOP",
+      "opponent": "NYK",
+      "bet_type": "player_prop",
+      "stat": "RA",
+      "line": 11.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "ocah17l_1",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Trey Murphy Over 20 PTS",
+      "player": "Trey Murphy",
+      "team": "NOP",
+      "opponent": "NYK",
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 20,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "ocah17l_2",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Paolo Banchero Over 23.5 PTS",
+      "player": "Paolo Banchero",
+      "team": "ORL",
+      "opponent": "CLE",
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 23.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "ocah17l_3",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Cam Johnson Over 11.5 PTS",
+      "player": "Cam Johnson",
+      "team": "DEN",
+      "opponent": "PHX",
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 11.5,
+      "direction": "over",
+      "confidence": "like",
+      "result": null
+    }
+  ]
 }
