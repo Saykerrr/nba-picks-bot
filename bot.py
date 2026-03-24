@@ -229,44 +229,48 @@ def escape_html(text):
     return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 # ── Claude Formatting ─────────────────────────────────────────────────────────
-def format_with_claude(username, body, post_title):
-    print(f"    🤖  Formatting with Claude (API key: {'✅ set' if ANTHROPIC_API_KEY else '❌ MISSING'})")
+def format_with_claude(username, body, post_title, is_edit=False):
+    print(f"    🤖  Formatting with Claude...")
 
     if not ANTHROPIC_API_KEY:
-        return fallback_format(body)
+        print(f"    ⚠️  No API key — sending plain text")
+        return escape_html(body.strip())
 
-    prompt = f"""You are formatting an NBA betting analyst's Reddit post for Telegram messenger.
+    edit_note = "NOTE: This is an EDITED version of a previously sent post — start with '✏️ <b>EDITED</b>' on its own line.\n\n" if is_edit else ""
 
-The analyst u/{username} wrote this post in the thread "{post_title}":
+    prompt = f"""{edit_note}You are formatting an NBA betting analyst's Reddit post for Telegram messenger.
+
+The analyst u/{username} posted this in "{post_title}":
 
 ---
 {body}
 ---
 
-Transform this into a beautifully formatted Telegram message. Follow these rules strictly:
+Transform this into a clean, well-formatted Telegram message. Follow these rules STRICTLY:
 
-STRUCTURE:
-- Start with a one-line header summarizing the post (e.g. "NBA Monday Night Writeup 🏀")
-- Separate each game matchup with a blank line
-- Each game gets its own section header in bold
+EMOJIS TO USE (do NOT use ✅ or ❌ — those are reserved for graded results):
+- 🏀 before every game matchup header (e.g. "🏀 Lakers vs Pistons")
+- 🎯 before every individual pick/bet line
+- ⚠️ before every injury or lineup news line
+- 📊 before every supporting stat or trend
+- 💡 before reasoning, analysis, or notes
+- ⭐ for the analyst's single strongest play
+- 🎰 before parlay suggestions and parlay legs
 
 FORMATTING:
-- Use <b>Player Name</b> for every player name mentioned
-- Use <b>Team vs Team</b> for every matchup header
-- Emojis to use: 🏀 matchup headers, ✅ confident bets/plays, 🔸 leans, ⚠️ injury notes, 📊 stats/trends, 💡 reasoning/analysis, ⭐ strong plays, 🎯 specific picks
-- Put each distinct bet/pick on its own line with a ✅ or 🔸 prefix
-- Put injury/lineup news on its own line with ⚠️
-- Put supporting stats on their own line with 📊
+- <b>bold</b> every player name and team name
+- Each game gets its own bold header with a blank line before it
+- Each bet/pick on its own line
+- Parlay section clearly separated
 
-CONTENT:
-- Keep ALL the original analysis word-for-word — do not summarize or remove anything
-- You may lightly rephrase for clarity but preserve all data, numbers, odds
-- Preserve the analyst's tone and confidence level
+CONTENT — IMPORTANT:
+- Keep all betting picks, analysis, injury news, stats, and odds
+- REMOVE any non-betting personal content such as: thank you messages, follower counts, season records, "buy me a coffee", social media plugs, or any sentence that has nothing to do with the actual picks
+- Keep it focused purely on tonight's bets and analysis
 
 OUTPUT:
-- Use ONLY <b> and <i> HTML tags — Telegram only supports these
-- No markdown (no **, no __, no ##)
-- Return ONLY the formatted message, nothing else"""
+- ONLY <b> and <i> HTML tags — no markdown, no **, no ##
+- Return ONLY the formatted message, no intro, no preamble"""
 
     try:
         resp = requests.post(
@@ -285,26 +289,14 @@ OUTPUT:
         )
         if resp.ok:
             result = resp.json()["content"][0]["text"].strip()
-            print(f"    ✅  Claude formatted successfully ({len(result)} chars)")
+            print(f"    ✅  Claude formatted ({len(result)} chars)")
             return result
         else:
             print(f"    ⚠️  Claude API error: {resp.status_code} {resp.text}", file=sys.stderr)
     except Exception as e:
         print(f"    ⚠️  Claude error: {e}", file=sys.stderr)
 
-    return fallback_format(body)
-
-def fallback_format(body):
-    """Basic formatting when Claude is unavailable."""
-    lines = body.strip().splitlines()
-    formatted = []
-    for line in lines:
-        line = line.strip()
-        if not line:
-            formatted.append("")
-            continue
-        formatted.append(escape_html(line))
-    return "\n".join(formatted)
+    return escape_html(body.strip())
 
 def build_message(post_title, post_url, username, formatted_body, is_edit=False):
     edit_tag = "  ✏️ <i>(edited)</i>" if is_edit else ""
@@ -320,13 +312,14 @@ def build_message(post_title, post_url, username, formatted_body, is_edit=False)
 def parse_bets_with_claude(username, body, post_title, date_str):
     if not ANTHROPIC_API_KEY:
         return []
-    prompt = f"""Extract all NBA bets from this comment.
+    prompt = f"""Extract all individual NBA bets from this comment. Only include actual bets with clear lines.
+
 Post: {post_title} | User: u/{username} | Date: {date_str}
 ---
 {body}
 ---
 Return JSON array only. Each object:
-- "description": e.g. "LeBron James Over 25.5 PTS"
+- "description": e.g. "Amen Thompson Over 12.5 RA"
 - "player": full name or null
 - "team": abbreviation or null
 - "opponent": abbreviation or null
@@ -335,13 +328,15 @@ Return JSON array only. Each object:
 - "line": numeric or null
 - "direction": "over","under" or null
 - "confidence": "lean","like","play","strong","fade" or null
+
+Important: Only include straight bets listed as individual plays. Do NOT duplicate parlay legs as individual bets if already listed above.
 Return [] if no clear bets. No markdown, no explanation."""
     try:
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
                      "anthropic-version": "2023-06-01"},
-            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 1000,
+            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 1500,
                   "messages": [{"role": "user", "content": prompt}]},
             timeout=30,
         )
@@ -356,7 +351,7 @@ Return [] if no clear bets. No markdown, no explanation."""
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     print(f"🤖  Bot starting — {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
-    print(f"    Anthropic key: {'✅ set' if ANTHROPIC_API_KEY else '❌ NOT SET — formatting will be plain text'}")
+    print(f"    Anthropic key: {'✅ set' if ANTHROPIC_API_KEY else '❌ NOT SET'}")
 
     state = ensure_keys(load_state())
     today = today_utc()
@@ -377,39 +372,43 @@ def main():
 
         comments = get_comments_rss(post_id)
 
-        # Group comments by user, pick the longest one (main writeup)
+        # Group by user — pick the longest comment (main writeup)
         user_comments = {}
         for comment in comments:
-            author_key = comment["author"]
-            if author_key not in TARGET_USERS:
+            ak = comment["author"]
+            if ak not in TARGET_USERS:
                 continue
-            if author_key not in user_comments or len(comment["body"]) > len(user_comments[author_key]["body"]):
-                user_comments[author_key] = comment
+            if ak not in user_comments or len(comment["body"]) > len(user_comments[ak]["body"]):
+                user_comments[ak] = comment
 
         for author_key, comment in user_comments.items():
             author_display = comment["author_raw"].strip().lstrip("/u/").lstrip("u/")
-            print(f"  🎯  Found main comment from u/{author_display} ({len(comment['body'])} chars)")
+            print(f"  🎯  Main comment from u/{author_display} ({len(comment['body'])} chars)")
 
             cid   = comment["id"]
             body  = comment["body"]
             chash = body_hash(body)
 
-            # Once-per-day-per-user guard
-            sent_key = f"{author_key}:{today}"
-            if state["sent_today"].get(sent_key):
-                print(f"    ⏭️   Already sent u/{author_display}'s picks today — skipping")
-                continue
-
             seen      = state["seen_comments"].get(cid, {})
             is_new    = not seen
             is_edited = not is_new and seen.get("hash") != chash
 
-            if not (is_new or is_edited):
+            sent_key = f"{author_key}:{today}"
+
+            # Block sending again only if it's not an edit
+            if not is_new and not is_edited:
                 print(f"    ⏭️   Already seen and unchanged")
                 continue
 
-            print(f"    {'✅' if is_new else '✏️ '} {'New' if is_new else 'Edited'} comment detected")
-            formatted = format_with_claude(author_display, body, title)
+            # If edited — always resend regardless of sent_today
+            if is_edited:
+                print(f"    ✏️   Comment was edited — resending")
+            elif state["sent_today"].get(sent_key):
+                print(f"    ⏭️   Already sent today and no edits — skipping")
+                continue
+
+            print(f"    {'✅ New' if is_new else '✏️  Edited'} — formatting with Claude...")
+            formatted = format_with_claude(author_display, body, title, is_edit=is_edited)
             message   = build_message(title, post_url, author_display, formatted, is_edit=is_edited)
 
             send_telegram(message)
@@ -417,6 +416,7 @@ def main():
             state["sent_today"][sent_key] = True
             sends += 1
 
+            # Parse and store bets only for new comments (not edits to avoid duplicates)
             if is_new:
                 bets = parse_bets_with_claude(author_display, body, title, today)
                 state["pending_bets"] = [
