@@ -442,10 +442,11 @@ def format_daily_results(graded, date_str):
         straights = [b for b in bets if b.get("bet_type") != "parlay"]
         parlays   = [b for b in bets if b.get("bet_type") == "parlay"]
 
+        # DNP and unknown are excluded from all counts
         sw = sum(1 for b in straights if b["result"] == "win")
         sl = sum(1 for b in straights if b["result"] == "loss")
         sp = sum(1 for b in straights if b["result"] == "push")
-        sd = sum(1 for b in straights if b["result"] == "dnp")
+        sd = sum(1 for b in straights if b["result"] in ("dnp", "unknown"))
 
         pw = sum(1 for b in parlays if b["result"] == "win")
         pl = sum(1 for b in parlays if b["result"] == "loss")
@@ -456,7 +457,7 @@ def format_daily_results(graded, date_str):
         p_rate = f"{round(pw/pt*100,1)}%" if pt > 0 else "—"
 
         lines.append(f"\n💬 <b>u/{user}</b>")
-        lines.append(f"  📈 Straight: <b>{sw}W / {sl}L</b>  {s_rate}" + (f"  <i>({sp} push)</i>" if sp else "") + (f"  <i>({sd} DNP)</i>" if sd else ""))
+        lines.append(f"  📈 Straight: <b>{sw}W / {sl}L</b>  {s_rate}" + (f"  <i>({sp} push)</i>" if sp else "") + (f"  <i>({sd} void/DNP)</i>" if sd else ""))
         lines.append(f"  🎰 Parlays:  <b>{pw}W / {pl}L</b>  {p_rate}")
 
         if straights:
@@ -464,7 +465,9 @@ def format_daily_results(graded, date_str):
             for bet in straights:
                 icon = RESULT_ICON.get(bet["result"], "❓")
                 desc = escape_html(bet.get("description", ""))
-                lines.append(f"  {icon} {desc}")
+                # Add void label for DNP so it's clear
+                void_tag = "  <i>(void — DNP)</i>" if bet["result"] == "dnp" else ""
+                lines.append(f"  {icon} {desc}{void_tag}")
 
         if parlays:
             lines.append("\n<b>Parlays:</b>")
@@ -573,20 +576,24 @@ def main():
             bet["result"]      = result
             bet["leg_results"] = leg_results
             bet["graded_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            # DNP/unknown parlays not counted in stats
             if result == "win":
                 state["stats"][user]["parlay_wins"]   += 1
             elif result == "loss":
                 state["stats"][user]["parlay_losses"] += 1
+            # dnp / unknown = not counted
         else:
             result = grade_single_bet(bet, player_stats, game_results)
             bet["result"]      = result
             bet["graded_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            # DNP and unknown are NOT counted in stats at all
             if result == "win":
                 state["stats"][user]["straight_wins"]   += 1
             elif result == "loss":
                 state["stats"][user]["straight_losses"] += 1
             elif result == "push":
                 state["stats"][user]["straight_pushes"] += 1
+            # dnp / unknown = intentionally not counted
 
         icon = RESULT_ICON.get(result, "❓")
         print(f"  {icon}  {bet.get('description','')[:60]}  →  {result}")
