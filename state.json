@@ -1,13 +1,6 @@
 {
-  "seen_comments": {
-    "ocah17l": {
-      "hash": "248ec290f7b7d83fc8b872dacafdb936",
-      "date": "2026-03-24"
-    }
-  },
-  "sent_today": {
-    "novel_calendar5168:2026-03-24": true
-  },
+  "seen_comments": {},
+  "sent_per_post": {},
   "graded_bets": [
     {
       "id": "manual_t1_0",
@@ -188,18 +181,9 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {
-          "description": "Amen Thompson O12.5 RA",
-          "result": "loss"
-        },
-        {
-          "description": "Stephon Castle O13.5 RA",
-          "result": "loss"
-        },
-        {
-          "description": "Cooper Flagg O12.5 RA",
-          "result": "win"
-        }
+        {"description": "Amen Thompson O12.5 RA", "result": "loss"},
+        {"description": "Stephon Castle O13.5 RA", "result": "loss"},
+        {"description": "Cooper Flagg O12.5 RA", "result": "win"}
       ],
       "graded_date": "2026-03-24"
     },
@@ -220,18 +204,9 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {
-          "description": "Josh Giddey O27.5 PA",
-          "result": "win"
-        },
-        {
-          "description": "Luka Doncic O40.5 PA",
-          "result": "loss"
-        },
-        {
-          "description": "Brice Sensabaugh O24.5 PA",
-          "result": "win"
-        }
+        {"description": "Josh Giddey O27.5 PA", "result": "win"},
+        {"description": "Luka Doncic O40.5 PA", "result": "loss"},
+        {"description": "Brice Sensabaugh O24.5 PA", "result": "win"}
       ],
       "graded_date": "2026-03-24"
     },
@@ -252,18 +227,9 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {
-          "description": "Jalen Johnson O1.5 3s",
-          "result": "dnp"
-        },
-        {
-          "description": "Tyler Herro O2.5 3s",
-          "result": "loss"
-        },
-        {
-          "description": "SGA U1.5 3s",
-          "result": "dnp"
-        }
+        {"description": "Jalen Johnson O1.5 3s", "result": "dnp"},
+        {"description": "Tyler Herro O2.5 3s", "result": "loss"},
+        {"description": "SGA U1.5 3s", "result": "dnp"}
       ],
       "graded_date": "2026-03-24"
     },
@@ -381,7 +347,7 @@
       "date": "2026-03-23",
       "post_title": "NBA Props Daily - 3/23/26 (Monday)",
       "post_url": "https://reddit.com/r/sportsbook",
-      "description": "Parlay 1: Tyler Herro O9.5 RA + Devin Vassell 13+ PTS (+200)",
+      "description": "Parlay 1: Tyler Herro O9.5 RA + Devin Vassell 13+ PTS",
       "player": null,
       "team": null,
       "opponent": null,
@@ -392,14 +358,8 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {
-          "description": "Tyler Herro O9.5 RA",
-          "result": "loss"
-        },
-        {
-          "description": "Devin Vassell 13+ PTS",
-          "result": "loss"
-        }
+        {"description": "Tyler Herro O9.5 RA", "result": "loss"},
+        {"description": "Devin Vassell 13+ PTS", "result": "loss"}
       ],
       "graded_date": "2026-03-24"
     },
@@ -409,7 +369,7 @@
       "date": "2026-03-23",
       "post_title": "NBA Props Daily - 3/23/26 (Monday)",
       "post_url": "https://reddit.com/r/sportsbook",
-      "description": "Parlay 2: Taurean Prince O1.5 3s + Amen Thompson 25+ PR + Naji Marshall O3.5 AST (+420)",
+      "description": "Parlay 2: Taurean Prince O1.5 3s + Amen Thompson 25+ PR + Naji Marshall O3.5 AST",
       "player": null,
       "team": null,
       "opponent": null,
@@ -420,18 +380,9 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {
-          "description": "Taurean Prince O1.5 3s",
-          "result": "loss"
-        },
-        {
-          "description": "Amen Thompson 25+ PR",
-          "result": "win"
-        },
-        {
-          "description": "Naji Marshall O3.5 AST",
-          "result": "win"
-        }
+        {"description": "Taurean Prince O1.5 3s", "result": "loss"},
+        {"description": "Amen Thompson 25+ PR", "result": "win"},
+        {"description": "Naji Marshall O3.5 AST", "result": "win"}
       ],
       "graded_date": "2026-03-24"
     },
@@ -441,7 +392,7 @@
       "date": "2026-03-23",
       "post_title": "NBA Props Daily - 3/23/26 (Monday)",
       "post_url": "https://reddit.com/r/sportsbook",
-      "description": "Degen Parlay 1: Jared McCain O11.5 PTS + Kristaps Porzingis 16.5 PTS + Dylan Harper O9.5 PTS (+600)",
+      "description": "Degen Parlay 1: Jared McCain O11.5 PTS + Kristaps Porzingis 16.5 PTS + Dylan Harper O9.5 PTS",
       "player": null,
       "team": null,
       "opponent": null,
@@ -452,18 +403,9 @@
       "confidence": "play",
       "result": "win",
       "leg_results": [
-        {
-          "description": "Jared McCain O11.5 PTS",
-          "result": "win"
-        },
-        {
-          "description": "Kristaps Porzingis 16.5 PTS",
-          "result": "win"
-        },
-        {
-          "description": "Dylan Harper O9.5 PTS",
-          "result": "win"
-        }
+        {"description": "Jared McCain O11.5 PTS", "result": "win"},
+        {"description": "Kristaps Porzingis 16.5 PTS", "result": "win"},
+        {"description": "Dylan Harper O9.5 PTS", "result": "win"}
       ],
       "graded_date": "2026-03-24"
     },
@@ -473,7 +415,7 @@
       "date": "2026-03-23",
       "post_title": "NBA Props Daily - 3/23/26 (Monday)",
       "post_url": "https://reddit.com/r/sportsbook",
-      "description": "Degen Parlay 2: Tyler Herro O2.5 3s + Jalen Johnson O1.5 3s + Klay Thompson O2.5 3s (+600)",
+      "description": "Degen Parlay 2: Tyler Herro O2.5 3s + Jalen Johnson O1.5 3s + Klay Thompson O2.5 3s",
       "player": null,
       "team": null,
       "opponent": null,
@@ -484,18 +426,9 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {
-          "description": "Tyler Herro O2.5 3s",
-          "result": "loss"
-        },
-        {
-          "description": "Jalen Johnson O1.5 3s",
-          "result": "dnp"
-        },
-        {
-          "description": "Klay Thompson O2.5 3s",
-          "result": "loss"
-        }
+        {"description": "Tyler Herro O2.5 3s", "result": "loss"},
+        {"description": "Jalen Johnson O1.5 3s", "result": "dnp"},
+        {"description": "Klay Thompson O2.5 3s", "result": "loss"}
       ],
       "graded_date": "2026-03-24"
     },
@@ -505,7 +438,7 @@
       "date": "2026-03-23",
       "post_title": "NBA Props Daily - 3/23/26 (Monday)",
       "post_url": "https://reddit.com/r/sportsbook",
-      "description": "Degen Parlay 3: Darius Garland O28.5 PA + Ty Jerome O26.5 PA + Cooper Flagg O27.5 PA (+600)",
+      "description": "Degen Parlay 3: Darius Garland O28.5 PA + Ty Jerome O26.5 PA + Cooper Flagg O27.5 PA",
       "player": null,
       "team": null,
       "opponent": null,
@@ -516,18 +449,9 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {
-          "description": "Darius Garland O28.5 PA",
-          "result": "loss"
-        },
-        {
-          "description": "Ty Jerome O26.5 PA",
-          "result": "loss"
-        },
-        {
-          "description": "Cooper Flagg O27.5 PA",
-          "result": "win"
-        }
+        {"description": "Darius Garland O28.5 PA", "result": "loss"},
+        {"description": "Ty Jerome O26.5 PA", "result": "loss"},
+        {"description": "Cooper Flagg O27.5 PA", "result": "win"}
       ],
       "graded_date": "2026-03-24"
     },
@@ -561,7 +485,7 @@
       "opponent": "NYK",
       "bet_type": "player_prop",
       "stat": "PTS",
-      "line": 20,
+      "line": 20.0,
       "direction": "over",
       "confidence": "play",
       "result": "loss",
