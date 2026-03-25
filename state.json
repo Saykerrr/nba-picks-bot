@@ -530,26 +530,7 @@
         }
       ],
       "graded_date": "2026-03-24"
-    }
-  ],
-  "stats": {
-    "taraujo": {
-      "straight_wins": 4,
-      "straight_losses": 4,
-      "straight_pushes": 0,
-      "parlay_wins": 0,
-      "parlay_losses": 3
     },
-    "Novel_Calendar5168": {
-      "straight_wins": 3,
-      "straight_losses": 3,
-      "straight_pushes": 0,
-      "parlay_wins": 1,
-      "parlay_losses": 4
-    }
-  },
-  "tracking_start": "2026-03-23",
-  "pending_bets": [
     {
       "id": "ocah17l_0",
       "user": "Novel_Calendar5168",
@@ -565,7 +546,8 @@
       "line": 11.5,
       "direction": "over",
       "confidence": "play",
-      "result": null
+      "result": "win",
+      "graded_date": "2026-03-25"
     },
     {
       "id": "ocah17l_1",
@@ -582,7 +564,8 @@
       "line": 20,
       "direction": "over",
       "confidence": "play",
-      "result": null
+      "result": "loss",
+      "graded_date": "2026-03-25"
     },
     {
       "id": "ocah17l_2",
@@ -599,7 +582,8 @@
       "line": 23.5,
       "direction": "over",
       "confidence": "play",
-      "result": null
+      "result": "win",
+      "graded_date": "2026-03-25"
     },
     {
       "id": "ocah17l_3",
@@ -616,7 +600,26 @@
       "line": 11.5,
       "direction": "over",
       "confidence": "like",
-      "result": null
+      "result": "win",
+      "graded_date": "2026-03-25"
     }
-  ]
+  ],
+  "stats": {
+    "taraujo": {
+      "straight_wins": 4,
+      "straight_losses": 4,
+      "straight_pushes": 0,
+      "parlay_wins": 0,
+      "parlay_losses": 3
+    },
+    "Novel_Calendar5168": {
+      "straight_wins": 6,
+      "straight_losses": 4,
+      "straight_pushes": 0,
+      "parlay_wins": 1,
+      "parlay_losses": 4
+    }
+  },
+  "tracking_start": "2026-03-23",
+  "pending_bets": []
 }
