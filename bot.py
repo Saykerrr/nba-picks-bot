@@ -25,6 +25,30 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 
+# ── Date extraction from post title ──────────────────────────────────────────
+def extract_date_from_title(title):
+    """
+    Extract date from post title like "NBA Props Daily - 3/23/26 (Monday)"
+    Returns "2026-03-23" format. Falls back to today UTC if not found.
+    """
+    # Match patterns like "3/23/26" or "3/23/2026"
+    m = re.search(r'(\d{1,2})/(\d{1,2})/(\d{2,4})', title)
+    if m:
+        month = int(m.group(1))
+        day   = int(m.group(2))
+        year  = int(m.group(3))
+        if year < 100:
+            year += 2000
+        try:
+            return f"{year:04d}-{month:02d}-{day:02d}"
+        except Exception:
+            pass
+    # Fallback to UTC today
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+def today_utc():
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
 # ── State ─────────────────────────────────────────────────────────────────────
 def load_state():
     if os.path.exists(STATE_FILE):
@@ -45,20 +69,20 @@ def save_state(state):
 def ensure_keys(state):
     for k, v in {
         "seen_comments": {},
-        "sent_today": {},
+        "sent_per_post": {},   # key: "author:post_id" — tracks sent per post, not per day
         "pending_bets": [],
         "graded_bets": [],
         "stats": {},
     }.items():
         if k not in state:
             state[k] = v
+    # Migrate old sent_today key
+    if "sent_today" in state and "sent_per_post" not in state:
+        state["sent_per_post"] = {}
     return state
 
 def body_hash(text):
     return hashlib.md5(text.encode()).hexdigest()
-
-def today_utc():
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 def normalize_author(raw):
     name = raw.strip()
@@ -233,10 +257,9 @@ def format_with_claude(username, body, post_title, is_edit=False):
     print(f"    🤖  Formatting with Claude...")
 
     if not ANTHROPIC_API_KEY:
-        print(f"    ⚠️  No API key — sending plain text")
         return escape_html(body.strip())
 
-    edit_note = "NOTE: This is an EDITED version of a previously sent post — start with '✏️ <b>EDITED</b>' on its own line.\n\n" if is_edit else ""
+    edit_note = "NOTE: This is an EDITED version — start with '✏️ <b>EDITED</b>' on its own line.\n\n" if is_edit else ""
 
     prompt = f"""{edit_note}You are formatting an NBA betting analyst's Reddit post for Telegram messenger.
 
@@ -248,30 +271,30 @@ The analyst u/{username} posted this in "{post_title}":
 
 Transform this into a clean, well-formatted Telegram message. Follow these rules STRICTLY:
 
-EMOJIS TO USE (do NOT use ✅ or ❌ — those are reserved for graded results):
+EMOJIS (do NOT use ✅ or ❌ — reserved for graded results only):
 - 🏀 before every game matchup header (e.g. "🏀 Lakers vs Pistons")
 - 🎯 before every individual pick/bet line
-- ⚠️ before every injury or lineup news line
+- ⚠️ before every injury or lineup news line  
 - 📊 before every supporting stat or trend
 - 💡 before reasoning, analysis, or notes
-- ⭐ for the analyst's single strongest play
+- ⭐ for the analyst's single strongest play of the night
 - 🎰 before parlay suggestions and parlay legs
 
 FORMATTING:
 - <b>bold</b> every player name and team name
 - Each game gets its own bold header with a blank line before it
 - Each bet/pick on its own line
-- Parlay section clearly separated
+- Parlay section clearly separated with header
 
-ODDS — ALWAYS convert American odds to decimal:
-- Positive American: decimal = (odds/100) + 1  →  +200 becomes 3.00, +600 becomes 7.00
-- Negative American: decimal = (100/|odds|) + 1  →  -130 becomes 1.77, -110 becomes 1.91
-- Always show decimal odds in parentheses replacing American odds e.g. "(3.00)" not "(+200)"
+ODDS — always convert American odds to decimal:
+- Positive: decimal = (odds/100) + 1  →  +200 = 3.00, +600 = 7.00, +120 = 2.20
+- Negative: decimal = (100/|odds|) + 1  →  -130 = 1.77, -110 = 1.91
+- Show as "(3.00)" replacing "(+200)"
 
-CONTENT — IMPORTANT:
-- Keep all betting picks, analysis, injury news, stats, and odds
-- REMOVE any non-betting personal content such as: thank you messages, follower counts, season records, "buy me a coffee", social media plugs, or any sentence that has nothing to do with the actual picks
-- Keep it focused purely on tonight's bets and analysis
+CONTENT:
+- Keep ALL betting picks, analysis, injury news, stats, and odds
+- REMOVE: thank you messages, follower counts, season records, "buy me a coffee", social media plugs
+- Keep focused on tonight's bets and analysis only
 
 OUTPUT:
 - ONLY <b> and <i> HTML tags — no markdown, no **, no ##
@@ -297,7 +320,7 @@ OUTPUT:
             print(f"    ✅  Claude formatted ({len(result)} chars)")
             return result
         else:
-            print(f"    ⚠️  Claude API error: {resp.status_code} {resp.text}", file=sys.stderr)
+            print(f"    ⚠️  Claude API error: {resp.status_code}", file=sys.stderr)
     except Exception as e:
         print(f"    ⚠️  Claude error: {e}", file=sys.stderr)
 
@@ -317,31 +340,38 @@ def build_message(post_title, post_url, username, formatted_body, is_edit=False)
 def parse_bets_with_claude(username, body, post_title, date_str):
     if not ANTHROPIC_API_KEY:
         return []
-    prompt = f"""Extract all individual NBA bets from this comment. Only include actual bets with clear lines.
+    prompt = f"""Extract ALL NBA bets from this comment — both individual plays AND parlays.
 
 Post: {post_title} | User: u/{username} | Date: {date_str}
 ---
 {body}
 ---
-Return JSON array only. Each object:
-- "description": e.g. "Amen Thompson Over 12.5 RA"
-- "player": full name or null
+
+Return a JSON array. Each object must have:
+- "description": clear label e.g. "Amen Thompson Over 12.5 RA" or "Parlay 1: Amen Thompson O12.5 RA + Stephon Castle O13.5 RA"
+- "player": full name or null (null for parlays)
 - "team": abbreviation or null
 - "opponent": abbreviation or null
-- "bet_type": "player_prop","spread","moneyline","total","parlay","other"
+- "bet_type": "player_prop", "parlay", "spread", "moneyline", "total", or "other"
 - "stat": "PTS","REB","AST","3PM","BLK","STL","PRA","PR","PA","RA" or null
-- "line": numeric or null
-- "direction": "over","under" or null
+- "line": numeric or null (null for parlays)
+- "direction": "over","under" or null (null for parlays)
 - "confidence": "lean","like","play","strong","fade" or null
 
-Important: Only include straight bets listed as individual plays. Do NOT duplicate parlay legs as individual bets if already listed above.
-Return [] if no clear bets. No markdown, no explanation."""
+IMPORTANT:
+- Include ALL individual plays listed
+- Include ALL parlays as separate entries (Parlay 1, Parlay 2, Degen Parlay 1, etc.)
+- For parlays, put the full description with all legs in "description" field using " + " between legs
+- Do NOT skip any bets
+- Return [] only if truly no bets exist
+- No markdown, no explanation, just valid JSON array"""
+
     try:
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
                      "anthropic-version": "2023-06-01"},
-            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 1500,
+            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 2000,
                   "messages": [{"role": "user", "content": prompt}]},
             timeout=30,
         )
@@ -359,7 +389,6 @@ def main():
     print(f"    Anthropic key: {'✅ set' if ANTHROPIC_API_KEY else '❌ NOT SET'}")
 
     state = ensure_keys(load_state())
-    today = today_utc()
     sends = 0
 
     posts = get_todays_matching_posts()
@@ -374,6 +403,10 @@ def main():
         title    = post["title"]
         post_url = post["url"]
         post_id  = post["post_id"]
+
+        # ── Key fix: extract date from post title, not from current UTC time ──
+        post_date = extract_date_from_title(title)
+        print(f"  📅  Post date from title: {post_date} (title: {title[:50]})")
 
         comments = get_comments_rss(post_id)
 
@@ -398,18 +431,17 @@ def main():
             is_new    = not seen
             is_edited = not is_new and seen.get("hash") != chash
 
-            sent_key = f"{author_key}:{today}"
+            # Use post_id + author as key so same author can post in different day's threads
+            sent_key = f"{author_key}:{post_id}"
 
-            # Block sending again only if it's not an edit
             if not is_new and not is_edited:
                 print(f"    ⏭️   Already seen and unchanged")
                 continue
 
-            # If edited — always resend regardless of sent_today
             if is_edited:
                 print(f"    ✏️   Comment was edited — resending")
-            elif state["sent_today"].get(sent_key):
-                print(f"    ⏭️   Already sent today and no edits — skipping")
+            elif state["sent_per_post"].get(sent_key):
+                print(f"    ⏭️   Already sent for this post (no new edits) — skipping")
                 continue
 
             print(f"    {'✅ New' if is_new else '✏️  Edited'} — formatting with Claude...")
@@ -417,13 +449,14 @@ def main():
             message   = build_message(title, post_url, author_display, formatted, is_edit=is_edited)
 
             send_telegram(message)
-            state["seen_comments"][cid] = {"hash": chash, "date": today}
-            state["sent_today"][sent_key] = True
+            state["seen_comments"][cid] = {"hash": chash, "date": post_date}
+            state["sent_per_post"][sent_key] = True
             sends += 1
 
-            # Parse and store bets only for new comments (not edits to avoid duplicates)
+            # Parse and store bets for new comments — use POST DATE not current date
             if is_new:
-                bets = parse_bets_with_claude(author_display, body, title, today)
+                bets = parse_bets_with_claude(author_display, body, title, post_date)
+                # Remove old entries for this comment
                 state["pending_bets"] = [
                     b for b in state["pending_bets"]
                     if not b.get("id", "").startswith(f"{cid}_")
@@ -433,19 +466,24 @@ def main():
                     if not bet.get("description"):
                         continue
                     state["pending_bets"].append({
-                        "id": f"{cid}_{i}", "user": author_display, "date": today,
-                        "post_title": title, "post_url": post_url,
+                        "id":          f"{cid}_{i}",
+                        "user":        author_display,
+                        "date":        post_date,   # ← POST DATE, not today's UTC
+                        "post_title":  title,
+                        "post_url":    post_url,
                         "description": bet.get("description", ""),
-                        "player": bet.get("player"), "team": bet.get("team"),
-                        "opponent": bet.get("opponent"),
-                        "bet_type": bet.get("bet_type", "other"),
-                        "stat": bet.get("stat"), "line": bet.get("line"),
-                        "direction": bet.get("direction"),
-                        "confidence": bet.get("confidence"),
-                        "result": None,
+                        "player":      bet.get("player"),
+                        "team":        bet.get("team"),
+                        "opponent":    bet.get("opponent"),
+                        "bet_type":    bet.get("bet_type", "other"),
+                        "stat":        bet.get("stat"),
+                        "line":        bet.get("line"),
+                        "direction":   bet.get("direction"),
+                        "confidence":  bet.get("confidence"),
+                        "result":      None,
                     })
                     stored += 1
-                print(f"    💾  Stored {stored} bet(s)")
+                print(f"    💾  Stored {stored} bet(s) for {post_date}")
 
     save_state(state)
     print(f"✅  Done — {sends} message(s) sent.")
