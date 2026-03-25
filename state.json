@@ -181,9 +181,18 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {"description": "Amen Thompson O12.5 RA", "result": "loss"},
-        {"description": "Stephon Castle O13.5 RA", "result": "loss"},
-        {"description": "Cooper Flagg O12.5 RA", "result": "win"}
+        {
+          "description": "Amen Thompson O12.5 RA",
+          "result": "loss"
+        },
+        {
+          "description": "Stephon Castle O13.5 RA",
+          "result": "loss"
+        },
+        {
+          "description": "Cooper Flagg O12.5 RA",
+          "result": "win"
+        }
       ],
       "graded_date": "2026-03-24"
     },
@@ -204,9 +213,18 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {"description": "Josh Giddey O27.5 PA", "result": "win"},
-        {"description": "Luka Doncic O40.5 PA", "result": "loss"},
-        {"description": "Brice Sensabaugh O24.5 PA", "result": "win"}
+        {
+          "description": "Josh Giddey O27.5 PA",
+          "result": "win"
+        },
+        {
+          "description": "Luka Doncic O40.5 PA",
+          "result": "loss"
+        },
+        {
+          "description": "Brice Sensabaugh O24.5 PA",
+          "result": "win"
+        }
       ],
       "graded_date": "2026-03-24"
     },
@@ -227,9 +245,18 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {"description": "Jalen Johnson O1.5 3s", "result": "dnp"},
-        {"description": "Tyler Herro O2.5 3s", "result": "loss"},
-        {"description": "SGA U1.5 3s", "result": "dnp"}
+        {
+          "description": "Jalen Johnson O1.5 3s",
+          "result": "dnp"
+        },
+        {
+          "description": "Tyler Herro O2.5 3s",
+          "result": "loss"
+        },
+        {
+          "description": "SGA U1.5 3s",
+          "result": "dnp"
+        }
       ],
       "graded_date": "2026-03-24"
     },
@@ -358,8 +385,14 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {"description": "Tyler Herro O9.5 RA", "result": "loss"},
-        {"description": "Devin Vassell 13+ PTS", "result": "loss"}
+        {
+          "description": "Tyler Herro O9.5 RA",
+          "result": "loss"
+        },
+        {
+          "description": "Devin Vassell 13+ PTS",
+          "result": "loss"
+        }
       ],
       "graded_date": "2026-03-24"
     },
@@ -380,9 +413,18 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {"description": "Taurean Prince O1.5 3s", "result": "loss"},
-        {"description": "Amen Thompson 25+ PR", "result": "win"},
-        {"description": "Naji Marshall O3.5 AST", "result": "win"}
+        {
+          "description": "Taurean Prince O1.5 3s",
+          "result": "loss"
+        },
+        {
+          "description": "Amen Thompson 25+ PR",
+          "result": "win"
+        },
+        {
+          "description": "Naji Marshall O3.5 AST",
+          "result": "win"
+        }
       ],
       "graded_date": "2026-03-24"
     },
@@ -403,9 +445,18 @@
       "confidence": "play",
       "result": "win",
       "leg_results": [
-        {"description": "Jared McCain O11.5 PTS", "result": "win"},
-        {"description": "Kristaps Porzingis 16.5 PTS", "result": "win"},
-        {"description": "Dylan Harper O9.5 PTS", "result": "win"}
+        {
+          "description": "Jared McCain O11.5 PTS",
+          "result": "win"
+        },
+        {
+          "description": "Kristaps Porzingis 16.5 PTS",
+          "result": "win"
+        },
+        {
+          "description": "Dylan Harper O9.5 PTS",
+          "result": "win"
+        }
       ],
       "graded_date": "2026-03-24"
     },
@@ -426,9 +477,18 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {"description": "Tyler Herro O2.5 3s", "result": "loss"},
-        {"description": "Jalen Johnson O1.5 3s", "result": "dnp"},
-        {"description": "Klay Thompson O2.5 3s", "result": "loss"}
+        {
+          "description": "Tyler Herro O2.5 3s",
+          "result": "loss"
+        },
+        {
+          "description": "Jalen Johnson O1.5 3s",
+          "result": "dnp"
+        },
+        {
+          "description": "Klay Thompson O2.5 3s",
+          "result": "loss"
+        }
       ],
       "graded_date": "2026-03-24"
     },
@@ -449,9 +509,18 @@
       "confidence": "play",
       "result": "loss",
       "leg_results": [
-        {"description": "Darius Garland O28.5 PA", "result": "loss"},
-        {"description": "Ty Jerome O26.5 PA", "result": "loss"},
-        {"description": "Cooper Flagg O27.5 PA", "result": "win"}
+        {
+          "description": "Darius Garland O28.5 PA",
+          "result": "loss"
+        },
+        {
+          "description": "Ty Jerome O26.5 PA",
+          "result": "loss"
+        },
+        {
+          "description": "Cooper Flagg O27.5 PA",
+          "result": "win"
+        }
       ],
       "graded_date": "2026-03-24"
     },
