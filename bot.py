@@ -1,3 +1,9 @@
+"""
+NBA/MLB/NCAABB Reddit Picks Bot  —  v4.0  (2026-03-26)
+Fetches comments from target users on r/sportsbook, formats with Claude,
+sends to Telegram, and stores bets for grading.
+"""
+
 import requests
 import json
 import os
@@ -8,6 +14,8 @@ import re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 
+VERSION = "4.0"
+
 # ── Config ────────────────────────────────────────────────────────────────────
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID   = os.environ["TELEGRAM_CHAT_ID"]
@@ -15,7 +23,7 @@ ANTHROPIC_API_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
 
 STATE_FILE     = "state.json"
 MAX_TG_CHARS   = 4000
-LOOKBACK_DAYS  = 3
+LOOKBACK_DAYS  = 5
 SUBREDDIT      = "sportsbook"
 
 HEADERS = {
@@ -26,40 +34,30 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
 }
 
-# ── Multi-sport configuration ─────────────────────────────────────────────────
-# Each sport has: keyword patterns for post titles, emoji, display name
+# ── Multi-sport configuration ────────────────────────────────────────────────
 SPORT_CONFIG = {
     "nba": {
         "keywords": ["nba props", "nba betting", "nba picks", "nba daily"],
-        "emoji":    "🏀",
-        "label":    "NBA",
+        "emoji": "🏀", "label": "NBA",
     },
     "mlb": {
         "keywords": ["mlb props", "mlb betting", "mlb picks", "mlb daily", "baseball betting"],
-        "emoji":    "⚾",
-        "label":    "MLB",
+        "emoji": "⚾", "label": "MLB",
     },
     "ncaabb": {
-        "keywords": [
-            "ncaabb", "ncaa basketball", "college basketball",
-            "cbb betting", "cbb picks", "cbb props",
-            "march madness", "ncaa bb",
-        ],
-        "emoji":    "🏀",
-        "label":    "NCAABB",
+        "keywords": ["ncaabb", "ncaa basketball", "college basketball",
+                     "cbb betting", "cbb picks", "cbb props", "march madness", "ncaa bb"],
+        "emoji": "🏀", "label": "NCAABB",
     },
 }
 
-# Target users and which sports they post about
-# The bot will look for ANY of these users in ANY matching thread
 TARGET_USERS = {
-    "taraujo":              {"nba", "mlb"},
-    "novel_calendar5168":   {"nba", "mlb"},
-    "wnba_prodigy":         {"ncaabb"},
+    "taraujo":            {"nba", "mlb"},
+    "novel_calendar5168": {"nba", "mlb"},
+    "wnba_prodigy":       {"ncaabb"},
 }
 
-# Emojis that indicate post-game edits (check marks, etc.)
-# Stripped before hashing to avoid re-sending on cosmetic edits
+# Emojis stripped before hashing (so adding ✅❌ doesn't trigger re-send)
 RESULT_EMOJIS = re.compile(
     r'[\u2705\u274C\u2714\uFE0F\u2611\u2612\u2B50\U0001F525\U0001F4B0\U0001F4C8'
     r'\U0001F4C9\u2B06\u2B07\U0001F7E2\U0001F534\U0001F7E1\U0001F44D\U0001F44E'
@@ -67,7 +65,7 @@ RESULT_EMOJIS = re.compile(
 )
 
 
-# ── Date extraction from post title ──────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 def extract_date_from_title(title):
     m = re.search(r'(\d{1,2})/(\d{1,2})/(\d{2,4})', title)
     if m:
@@ -82,7 +80,6 @@ def extract_date_from_title(title):
 
 
 def detect_sport(title):
-    """Detect sport from post title.  Returns sport key or None."""
     lower = title.lower()
     for sport, cfg in SPORT_CONFIG.items():
         if any(kw in lower for kw in cfg["keywords"]):
@@ -90,7 +87,6 @@ def detect_sport(title):
     return None
 
 
-# ── State ─────────────────────────────────────────────────────────────────────
 def load_state():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE) as f:
@@ -111,25 +107,16 @@ def save_state(state):
 
 def ensure_keys(state):
     if "sent_today" in state:
-        if "sent_per_post" not in state:
-            state["sent_per_post"] = {}
-        del state["sent_today"]
-    for k, v in {
-        "seen_comments": {}, "sent_per_post": {},
-        "pending_bets": [], "graded_bets": [], "stats": {},
-    }.items():
+        state.pop("sent_today", None)
+    for k, v in {"seen_comments": {}, "sent_per_post": {},
+                 "pending_bets": [], "graded_bets": [], "stats": {}}.items():
         if k not in state:
             state[k] = v
     return state
 
 
 def smart_body_hash(text):
-    """
-    Hash the body AFTER stripping result emojis (✅❌🔥💰📈 etc).
-    This prevents re-sending when a user just adds checkmarks to hits.
-    """
     cleaned = RESULT_EMOJIS.sub("", text)
-    # Also strip leading/trailing whitespace changes per line
     cleaned = "\n".join(line.strip() for line in cleaned.splitlines())
     return hashlib.md5(cleaned.encode()).hexdigest()
 
@@ -142,7 +129,7 @@ def normalize_author(raw):
     return name.lower()
 
 
-# ── RSS helpers ───────────────────────────────────────────────────────────────
+# ── RSS ───────────────────────────────────────────────────────────────────────
 ATOM_NS = "http://www.w3.org/2005/Atom"
 
 
@@ -151,11 +138,9 @@ def fetch_rss(url, retries=3):
         try:
             resp = requests.get(url, headers=HEADERS, timeout=20)
             if resp.status_code == 429:
-                print(f"  ⏳  Rate limited, waiting 30s...")
                 time.sleep(30)
                 continue
             if resp.status_code in (403, 404):
-                print(f"  ⚠️  HTTP {resp.status_code} for {url}")
                 return None
             resp.raise_for_status()
             return resp.content
@@ -203,23 +188,20 @@ def extract_comment_id(entry_id):
     return match.group(1) if match else entry_id.rstrip("/").split("/")[-1]
 
 
-def is_recent(updated_str, days=LOOKBACK_DAYS):
+def is_recent(updated_str):
     if not updated_str:
         return False
     try:
         dt = datetime.fromisoformat(updated_str.replace("Z", "+00:00"))
-        return dt >= datetime.now(timezone.utc) - timedelta(days=days)
+        return dt >= datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)
     except Exception:
         return False
 
 
 def strip_html(html):
     text = html
-    for old, new in [
-        ("&lt;", "<"), ("&gt;", ">"), ("&amp;", "&"),
-        ("&#39;", "'"), ("&quot;", '"'),
-        ("<br>", "\n"), ("<br/>", "\n"), ("<br />", "\n"),
-    ]:
+    for old, new in [("&lt;","<"),("&gt;",">"),("&amp;","&"),("&#39;","'"),
+                     ("&quot;",'"'),("<br>","\n"),("<br/>","\n"),("<br />","\n")]:
         text = text.replace(old, new)
     text = re.sub(r"<(?:p|div|li|tr)[^>]*>", "\n", text, flags=re.IGNORECASE)
     text = re.sub(r"<[^>]+>", "", text)
@@ -229,34 +211,18 @@ def strip_html(html):
 
 # ── Posts ─────────────────────────────────────────────────────────────────────
 def get_recent_matching_posts():
-    """
-    Fetch matching posts from the last LOOKBACK_DAYS days.
-    Scans for ALL configured sports (NBA, MLB, NCAABB).
-    """
     all_entries = []
-
-    # Source 1: /new feed
-    content = fetch_rss(
-        f"https://www.reddit.com/r/{SUBREDDIT}/new/.rss?limit=50"
-    )
+    content = fetch_rss(f"https://www.reddit.com/r/{SUBREDDIT}/new/.rss?limit=50")
     all_entries.extend(parse_atom(content))
     time.sleep(2)
-
-    # Source 2: search for each sport
-    all_keywords = set()
-    for cfg in SPORT_CONFIG.values():
-        all_keywords.update(cfg["keywords"][:2])  # Top 2 per sport
-
-    search_q = "+OR+".join(kw.replace(" ", "+") for kw in list(all_keywords)[:6])
+    search_q = "NBA+Props+Daily+OR+NBA+Betting+OR+NBA+Picks+OR+MLB+Props+OR+College+Basketball"
     content2 = fetch_rss(
         f"https://www.reddit.com/r/{SUBREDDIT}/search.rss"
         f"?q={search_q}&restrict_sr=1&sort=new&t=week&limit=25"
     )
     all_entries.extend(parse_atom(content2))
+    print(f"  📥  Fetched {len(all_entries)} total RSS entries")
 
-    print(f"  📥  Fetched {len(all_entries)} total entries from RSS")
-
-    # Deduplicate and filter
     seen_ids = set()
     matching = []
     for entry in all_entries:
@@ -269,14 +235,9 @@ def get_recent_matching_posts():
         if not post_id or post_id in seen_ids:
             continue
         seen_ids.add(post_id)
-        matching.append({
-            "title":   entry["title"],
-            "url":     entry["link"],
-            "post_id": post_id,
-            "sport":   sport,
-        })
-        emoji = SPORT_CONFIG[sport]["emoji"]
-        print(f"  📌  {emoji} [{sport.upper()}] {entry['title'][:60]}")
+        matching.append({"title": entry["title"], "url": entry["link"],
+                         "post_id": post_id, "sport": sport})
+        print(f"  📌  [{sport.upper()}] {entry['title'][:60]}")
     return matching
 
 
@@ -294,130 +255,66 @@ def get_comments_rss(post_id):
         if not body or len(body) < 10:
             continue
         cid = extract_comment_id(entry.get("id", ""))
-        comments.append({
-            "author_raw": raw_author,
-            "author":     normalize_author(raw_author),
-            "body":       body,
-            "id":         cid,
-            "link":       entry.get("link", ""),
-        })
+        comments.append({"author_raw": raw_author, "author": normalize_author(raw_author),
+                         "body": body, "id": cid, "link": entry.get("link", "")})
     print(f"    💬  {len(comments)} comments fetched")
     return comments
 
 
-# ── Comment Relevance Check ───────────────────────────────────────────────────
+# ── Comment relevance check ──────────────────────────────────────────────────
 def is_picks_comment(body, sport):
-    """
-    Quick check: does this comment contain actual betting picks?
-    Filters out short chatter like "6-2 yesterday was great" or "tailing!".
-    Uses fast heuristic first, falls back to Claude for ambiguous cases.
-    """
-    # ── Fast filters ──
-    # Very short comments are almost never picks
     if len(body) < 80:
-        print(f"    ⏭️  Too short ({len(body)} chars) — skipping")
         return False
-
-    # Heuristic: picks comments usually contain numbers + betting keywords
-    has_numbers  = bool(re.search(r'\d+\.?\d*', body))
-    bet_keywords = re.compile(
+    has_numbers = bool(re.search(r'\d+\.?\d*', body))
+    bet_kw = re.compile(
         r'\b(over|under|o\d|u\d|parlay|prop|spread|moneyline|pts|reb|ast|3pm|'
         r'pra|RA\b|PA\b|PR\b|hits|HR\b|rbi|strikeouts|total bases|'
-        r'picks|play|lean|fade|bol|best of luck|record|lock)\b',
-        re.IGNORECASE
+        r'picks|play|lean|fade|bol|lock)\b', re.IGNORECASE
     )
-    keyword_count = len(bet_keywords.findall(body))
-
-    # Strong signal: multiple betting keywords + numbers → definitely picks
+    keyword_count = len(bet_kw.findall(body))
     if has_numbers and keyword_count >= 3:
         return True
-
-    # Strong non-signal: no numbers at all → definitely not picks
     if not has_numbers:
-        print(f"    ⏭️  No numbers found — not a picks comment")
         return False
-
-    # ── Ambiguous → ask Claude (cheap, fast) ──
     if not ANTHROPIC_API_KEY:
-        # No API key → be permissive
         return keyword_count >= 1
-
     sport_label = SPORT_CONFIG.get(sport, {}).get("label", "sports")
-    prompt = f"""Is this Reddit comment an {sport_label} betting picks post with actual specific bets?
-Answer YES if it contains player props, parlays, specific over/under picks, or game predictions with lines.
-Answer NO if it's just a recap of past results, a "tailing" reply, a record update, social media plug, thanks message, or generic commentary.
-
-Comment:
----
-{body[:1500]}
----
-
-Reply with ONLY "YES" or "NO"."""
-
+    prompt = (f"Is this Reddit comment an {sport_label} betting picks post with actual "
+              f"specific bets (player props, parlays, over/under picks)?\n"
+              f"Answer NO if it's just a recap, record update, or generic chat.\n\n"
+              f"Comment:\n---\n{body[:1500]}\n---\n\nReply ONLY \"YES\" or \"NO\".")
     try:
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "Content-Type": "application/json",
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 5,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=15,
-        )
+        resp = requests.post("https://api.anthropic.com/v1/messages",
+            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
+                     "anthropic-version": "2023-06-01"},
+            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 5,
+                  "messages": [{"role": "user", "content": prompt}]}, timeout=15)
         if resp.ok:
             answer = resp.json()["content"][0]["text"].strip().upper()
             if "NO" in answer:
-                print(f"    ⏭️  Claude says not picks — skipping")
+                print(f"    ⏭️  Not a picks comment — skipping")
                 return False
-            return True
-    except Exception as e:
-        print(f"    ⚠️  Relevance check failed: {e}", file=sys.stderr)
-
-    # Default: allow if has some keywords
+    except Exception:
+        pass
     return keyword_count >= 1
 
 
 def is_meaningful_edit(old_body, new_body):
-    """
-    Determine if an edit is meaningful (new picks, changed lines, injury news)
-    vs cosmetic (added ✅/❌ emojis, minor wording).
-    """
-    # Strip result emojis from both versions
     old_clean = RESULT_EMOJIS.sub("", old_body).strip()
     new_clean = RESULT_EMOJIS.sub("", new_body).strip()
-
-    # If the cleaned versions are identical, this is just emoji additions
     old_lines = set(line.strip() for line in old_clean.splitlines() if line.strip())
     new_lines = set(line.strip() for line in new_clean.splitlines() if line.strip())
-
-    added   = new_lines - old_lines
-    removed = old_lines - new_lines
-
-    if not added and not removed:
+    added = new_lines - old_lines
+    if not added:
         return False
-
-    # Check if added content is substantive (contains picks-like content)
     added_text = " ".join(added)
     has_numbers = bool(re.search(r'\d+\.?\d*', added_text))
     has_keywords = bool(re.search(
         r'\b(over|under|o\d|u\d|parlay|prop|spread|pts|reb|ast|3pm|'
         r'hits|HR|rbi|strikeouts|injured|out|scratch|lineup|changed)\b',
-        added_text, re.IGNORECASE
-    ))
-
-    if has_numbers or has_keywords:
+        added_text, re.IGNORECASE))
+    if has_numbers or has_keywords or len(added_text) > 100:
         return True
-
-    # Significant amount of new text → meaningful
-    if len(added_text) > 100:
-        return True
-
-    print(f"    ⏭️  Edit is cosmetic (emojis/minor wording) — skipping")
     return False
 
 
@@ -427,17 +324,11 @@ def send_telegram(text):
     for i, chunk in enumerate(chunks):
         resp = requests.post(
             f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            json={
-                "chat_id":                  TELEGRAM_CHAT_ID,
-                "text":                     chunk,
-                "parse_mode":               "HTML",
-                "disable_web_page_preview": True,
-            },
-            timeout=15,
-        )
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": chunk,
+                  "parse_mode": "HTML", "disable_web_page_preview": True},
+            timeout=15)
         if not resp.ok:
-            print(f"  ⚠️  Telegram error {resp.status_code}: {resp.text}",
-                  file=sys.stderr)
+            print(f"  ⚠️  Telegram error {resp.status_code}: {resp.text}", file=sys.stderr)
         else:
             print(f"  📨  Sent part {i+1}/{len(chunks)} ({len(chunk)} chars)")
         if len(chunks) > 1:
@@ -466,105 +357,48 @@ def escape_html(text):
 
 # ── Claude Formatting ─────────────────────────────────────────────────────────
 def format_with_claude(username, body, post_title, sport, is_edit=False):
-    print(f"    🤖  Formatting with Claude...")
-
     if not ANTHROPIC_API_KEY:
         return escape_html(body.strip())
-
     sport_label = SPORT_CONFIG.get(sport, {}).get("label", "Sports")
+    sport_emoji = "⚾" if sport == "mlb" else "🏀"
+    edit_note = "NOTE: This is an EDITED version — start with '✏️ <b>EDITED</b>' on its own line.\n\n" if is_edit else ""
 
-    edit_note = (
-        "NOTE: This is an EDITED version — start with "
-        "'✏️ <b>EDITED</b>' on its own line.\n\n"
-        if is_edit else ""
-    )
+    prompt = f"""{edit_note}You are formatting a {sport_label} betting analyst's Reddit post for Telegram.
 
-    # Sport-specific emoji guidance
-    if sport == "mlb":
-        emoji_guide = """EMOJIS (do NOT use ✅ or ❌ — reserved for graded results only):
-- ⚾ before every game matchup header
-- 🎯 before every individual pick/bet line
-- ⚠️ before injury or lineup news
-- 📊 before supporting stats or trends
-- 💡 before reasoning or analysis
-- ⭐ for the analyst's strongest play of the night
-- 🎰 before parlay suggestions and parlay legs"""
-    elif sport == "ncaabb":
-        emoji_guide = """EMOJIS (do NOT use ✅ or ❌ — reserved for graded results only):
-- 🏀 before every game matchup header
-- 🎯 before every individual pick/bet line
-- ⚠️ before injury or lineup news
-- 📊 before supporting stats or trends
-- 💡 before reasoning or analysis
-- ⭐ for the analyst's strongest play of the night
-- 🎰 before parlay suggestions and parlay legs"""
-    else:
-        emoji_guide = """EMOJIS (do NOT use ✅ or ❌ — reserved for graded results only):
-- 🏀 before every game matchup header
-- 🎯 before every individual pick/bet line
-- ⚠️ before injury or lineup news
-- 📊 before supporting stats or trends
-- 💡 before reasoning or analysis
-- ⭐ for the analyst's strongest play of the night
-- 🎰 before parlay suggestions and parlay legs"""
-
-    prompt = f"""{edit_note}You are formatting a {sport_label} betting analyst's Reddit post for Telegram messenger.
-
-The analyst u/{username} posted this in "{post_title}":
+u/{username} posted in "{post_title}":
 
 ---
 {body}
 ---
 
-Transform this into a clean, well-formatted Telegram message. Follow these rules STRICTLY:
+Format as a clean Telegram message:
 
-{emoji_guide}
+EMOJIS (NEVER use ✅ or ❌ — reserved for results):
+- {sport_emoji} before game matchup headers
+- 🎯 before each pick/bet
+- ⚠️ before injury/lineup news
+- 📊 before stats/trends
+- 💡 before analysis/reasoning
+- ⭐ for the strongest play
+- 🎰 before parlays
 
-FORMATTING:
-- <b>bold</b> every player name and team name
-- Each game gets its own bold header with a blank line before it
-- Each bet/pick on its own line
-- Parlay section clearly separated with header
-
-ODDS — always convert American odds to decimal:
-- Positive: decimal = (odds/100) + 1  →  +200 = 3.00, +600 = 7.00, +120 = 2.20
-- Negative: decimal = (100/|odds|) + 1  →  -130 = 1.77, -110 = 1.91
-- Show as "(3.00)" replacing "(+200)"
-
-CONTENT:
-- Keep ALL betting picks, analysis, injury news, stats, and odds
-- REMOVE: thank you messages, follower counts, season records, "buy me a coffee", social media plugs, any ✅ or ❌ result emojis from past bets
-- Keep focused on tonight's bets and analysis only
-
-OUTPUT:
-- ONLY <b> and <i> HTML tags — no markdown, no **, no ##
-- Return ONLY the formatted message, no intro, no preamble"""
+RULES:
+- <b>bold</b> player and team names
+- Convert American odds to decimal: +200→3.00, -130→1.77
+- REMOVE: thank yous, follower counts, records, tip jars, social plugs, any ✅/❌ emojis
+- ONLY use <b> and <i> HTML tags
+- Return ONLY the formatted message"""
 
     try:
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "Content-Type": "application/json",
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 3000,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=40,
-        )
+        resp = requests.post("https://api.anthropic.com/v1/messages",
+            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
+                     "anthropic-version": "2023-06-01"},
+            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 3000,
+                  "messages": [{"role": "user", "content": prompt}]}, timeout=40)
         if resp.ok:
-            result = resp.json()["content"][0]["text"].strip()
-            print(f"    ✅  Claude formatted ({len(result)} chars)")
-            return result
-        else:
-            print(f"    ⚠️  Claude API error: {resp.status_code}",
-                  file=sys.stderr)
+            return resp.json()["content"][0]["text"].strip()
     except Exception as e:
         print(f"    ⚠️  Claude error: {e}", file=sys.stderr)
-
     return escape_html(body.strip())
 
 
@@ -573,106 +407,92 @@ def build_message(post_title, post_url, username, formatted_body, sport, is_edit
     emoji = SPORT_CONFIG.get(sport, {}).get("emoji", "🏀")
     return (
         f"{emoji} <b>{escape_html(post_title)}</b>\n"
-        f"{'━' * 30}\n"
+        f"───────────────\n"
         f"💬 <b>u/{username}</b>{edit_tag}\n\n"
         f"{formatted_body}\n\n"
         f"🔗 <a href='{post_url}'>View on Reddit</a>"
     )
 
 
-# ── Bet Parsing ───────────────────────────────────────────────────────────────
+# ── Bet Parsing (uses Sonnet for accuracy) ────────────────────────────────────
 def parse_bets_with_claude(username, body, post_title, date_str, sport):
     if not ANTHROPIC_API_KEY:
         return []
-
     sport_label = SPORT_CONFIG.get(sport, {}).get("label", "Sports")
-
-    # Sport-specific stat guidance
     if sport == "mlb":
-        stat_guide = (
-            '- "stat": "H","HR","RBI","R","SB","TB","K","BB","ER","IP","HITS_ALLOWED" or null\n'
-            '- For pitcher props use stat like "K" (strikeouts), "ER", "IP"\n'
-            '- For batter props use "H" (hits), "HR", "RBI", "R" (runs), "SB", "TB" (total bases)'
-        )
+        stat_guide = ('- "stat": "H","HR","RBI","R","SB","TB","K","BB","ER","IP","HITS_ALLOWED" or null\n'
+                      '- For pitcher props: "K" (strikeouts), "ER", "IP"\n'
+                      '- For batter props: "H" (hits), "HR", "RBI", "R" (runs), "SB", "TB"')
     else:
-        stat_guide = (
-            '- "stat": "PTS","REB","AST","3PM","BLK","STL","PRA","PR","PA","RA" or null\n'
-            '- Use "3PM" for three-pointers made, even if the user writes "3s" or "3\'s" or "threes"'
-        )
+        stat_guide = ('- "stat": "PTS","REB","AST","3PM","BLK","STL","PRA","PR","PA","RA" or null\n'
+                      '- Use "3PM" for three-pointers, even if user writes "3s" or "3\'s"')
 
-    prompt = f"""Extract ALL {sport_label} bets from this comment — both individual plays AND parlays.
+    prompt = f"""You are a precise sports betting data extractor. Extract ALL {sport_label} bets from this Reddit comment.
 
-Post: {post_title} | User: u/{username} | Date: {date_str} | Sport: {sport_label}
+Post: {post_title} | User: u/{username} | Date: {date_str}
 ---
 {body}
 ---
 
-Return a JSON array. Each object must have:
-- "description": MUST be a complete bet like "Dejounte Murray Over 11.5 RA" or "Parlay 1: Murray O11.5 RA + Booker O5.5 AST"
+Return a JSON array. Each element:
+- "description": COMPLETE bet, e.g. "Dejounte Murray Over 11.5 RA" or "Parlay 1: Dejounte Murray O11.5 RA + Devin Booker O5.5 AST"
 - "player": full name or null (null for parlays)
 - "team": abbreviation or null
 - "opponent": abbreviation or null
-- "bet_type": "player_prop", "parlay", "spread", "moneyline", "total", or "other"
+- "bet_type": "player_prop" | "parlay" | "spread" | "moneyline" | "total" | "other"
 {stat_guide}
-- "line": numeric value — REQUIRED for player_prop (never null)
-- "direction": "over" or "under" — REQUIRED for player_prop (never null)
-- "confidence": "lean","like","play","strong","fade" or null
+- "line": number — REQUIRED for player_prop
+- "direction": "over" | "under" — REQUIRED for player_prop
+- "confidence": "lean" | "like" | "play" | "strong" | "fade" | null
 
-CRITICAL RULES:
-- Every player_prop MUST have player + stat + line + direction. If ANY of these is missing, DO NOT include that bet.
-- The description must always include the full bet: "Player Over/Under Line Stat" — never just "Player Stat" without a line.
-- For parlays, EVERY leg in the description must be complete: "Player O/U Line Stat + Player O/U Line Stat"
-- If a parlay leg references a previous individual pick (like "Murray RA" referring to a pick listed above), expand it to the full bet with the actual line (e.g., "Dejounte Murray O11.5 RA").
-- Include ALL individual plays and ALL parlays as separate entries
-- Use " + " between legs in parlay descriptions
-- Do NOT create duplicate entries — if a bet appears as an individual play AND inside a parlay, include BOTH but each only once
-- Return [] only if truly no bets exist
-- No markdown, no explanation, just valid JSON array"""
+ABSOLUTE RULES:
+1. Every player_prop MUST have: full player name, stat, numeric line, direction. NEVER output incomplete bets like "Murray RA" or "Booker" alone.
+2. PARLAYS: Users often write parlay legs as shorthand (e.g., "Murray RA + Booker AST + Banchero PTS"). These reference their individual picks listed ABOVE in the same comment. You MUST look up each reference and expand to the complete bet with the exact line number. Example: if individual picks list "Dejounte Murray Over 11.5 RA" and "Devin Booker Over 5.5 AST", then "Murray RA + Booker AST" becomes "Parlay: Dejounte Murray O11.5 RA + Devin Booker O5.5 AST".
+3. If you cannot find the line number for a parlay leg reference, SKIP that entire parlay. Never include a parlay with vague or incomplete legs.
+4. Use " + " between parlay legs.
+5. Return ONLY valid JSON. No markdown fences, no explanation."""
 
     try:
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "Content-Type": "application/json",
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 2000,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=30,
-        )
+        resp = requests.post("https://api.anthropic.com/v1/messages",
+            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
+                     "anthropic-version": "2023-06-01"},
+            json={"model": "claude-sonnet-4-20250514", "max_tokens": 3000,
+                  "messages": [{"role": "user", "content": prompt}]}, timeout=45)
         if resp.ok:
-            raw = (resp.json()["content"][0]["text"].strip()
-                   .replace("```json", "").replace("```", "").strip())
+            raw = resp.json()["content"][0]["text"].strip()
+            raw = raw.replace("```json", "").replace("```", "").strip()
             bets = json.loads(raw)
             if not isinstance(bets, list):
                 return []
-            # ── Post-parse validation: reject incomplete bets ──
+            # ── Strict validation ──
             valid = []
             for bet in bets:
                 bt = bet.get("bet_type", "other")
                 if bt == "player_prop":
-                    # Must have player + stat + line + direction
                     if not bet.get("player"):
-                        print(f"    ⚠️  Rejected: no player — {bet.get('description','')[:50]}")
+                        print(f"    🗑️  Rejected (no player): {bet.get('description','')[:50]}")
                         continue
                     if bet.get("line") is None:
-                        print(f"    ⚠️  Rejected: no line — {bet.get('description','')[:50]}")
+                        print(f"    🗑️  Rejected (no line): {bet.get('description','')[:50]}")
                         continue
                     if not bet.get("direction"):
-                        print(f"    ⚠️  Rejected: no direction — {bet.get('description','')[:50]}")
+                        print(f"    🗑️  Rejected (no direction): {bet.get('description','')[:50]}")
                         continue
                     if not bet.get("stat"):
-                        print(f"    ⚠️  Rejected: no stat — {bet.get('description','')[:50]}")
+                        print(f"    🗑️  Rejected (no stat): {bet.get('description','')[:50]}")
                         continue
                 elif bt == "parlay":
-                    # Parlay description must contain " + " (multiple legs)
                     desc = bet.get("description", "")
-                    if " + " not in desc and "+" not in desc:
-                        print(f"    ⚠️  Rejected: parlay without legs — {desc[:50]}")
+                    # Check each leg has a number (line)
+                    legs_text = re.sub(r'^[^:]+:\s*', '', desc)
+                    legs = re.split(r'\s+\+\s+', legs_text)
+                    bad_leg = False
+                    for leg in legs:
+                        if not re.search(r'\d+\.?\d*', leg):
+                            print(f"    🗑️  Rejected parlay (leg missing line): {leg[:40]}")
+                            bad_leg = True
+                            break
+                    if bad_leg:
                         continue
                 valid.append(bet)
             dropped = len(bets) - len(valid)
@@ -686,18 +506,14 @@ CRITICAL RULES:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    print(f"🤖  Bot starting — "
+    print(f"🤖  Bot v{VERSION} starting — "
           f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
-    print(f"    Anthropic key: {'✅ set' if ANTHROPIC_API_KEY else '❌ NOT SET'}")
-    print(f"    Lookback: {LOOKBACK_DAYS} days | Sports: "
-          f"{', '.join(s.upper() for s in SPORT_CONFIG)}")
-    print(f"    Users: {', '.join(TARGET_USERS.keys())}")
+    print(f"    Lookback: {LOOKBACK_DAYS} days")
 
     state = ensure_keys(load_state())
     sends = 0
-
     posts = get_recent_matching_posts()
-    print(f"  🎯  {len(posts)} matching post(s) found")
+    print(f"  🎯  {len(posts)} matching post(s)")
 
     if not posts:
         print("  💤  No matching posts — done.")
@@ -705,119 +521,79 @@ def main():
         return
 
     for post in posts:
-        title    = post["title"]
-        post_url = post["url"]
-        post_id  = post["post_id"]
-        sport    = post["sport"]
-
+        title, post_url, post_id, sport = post["title"], post["url"], post["post_id"], post["sport"]
         post_date = extract_date_from_title(title)
-        emoji = SPORT_CONFIG[sport]["emoji"]
-        print(f"\n  {emoji}  [{sport.upper()}] {post_date} | {title[:60]}")
+        print(f"\n  📅  [{sport.upper()}] {post_date} | {title[:60]}")
 
         comments = get_comments_rss(post_id)
-
-        # Group by user — pick the longest comment (main writeup)
         user_comments = {}
         for comment in comments:
             ak = comment["author"]
-            if ak not in TARGET_USERS:
+            if ak not in TARGET_USERS or sport not in TARGET_USERS[ak]:
                 continue
-            # Check if this user tracks this sport
-            if sport not in TARGET_USERS[ak]:
-                continue
-            if (ak not in user_comments
-                    or len(comment["body"]) > len(user_comments[ak]["body"])):
+            if ak not in user_comments or len(comment["body"]) > len(user_comments[ak]["body"]):
                 user_comments[ak] = comment
 
         for author_key, comment in user_comments.items():
-            author_display = (comment["author_raw"].strip()
-                              .lstrip("/u/").lstrip("u/"))
+            author_display = comment["author_raw"].strip().lstrip("/u/").lstrip("u/")
             print(f"  🎯  u/{author_display} ({len(comment['body'])} chars)")
 
-            cid  = comment["id"]
-            body = comment["body"]
+            cid, body = comment["id"], comment["body"]
 
-            # ── Relevance check — skip non-picks comments ──
             if not is_picks_comment(body, sport):
                 continue
 
-            chash = smart_body_hash(body)
-            seen  = state["seen_comments"].get(cid, {})
+            chash     = smart_body_hash(body)
+            seen      = state["seen_comments"].get(cid, {})
             is_new    = not seen
             is_edited = not is_new and seen.get("hash") != chash
-
-            sent_key = f"{author_key}:{post_id}"
+            sent_key  = f"{author_key}:{post_id}"
 
             if not is_new and not is_edited:
-                print(f"    ⏭️   Already seen and unchanged")
+                print(f"    ⏭️   Unchanged")
                 continue
-
             if is_edited:
-                # Check if the edit is meaningful
                 old_body = seen.get("body_preview", "")
                 if old_body and not is_meaningful_edit(old_body, body):
-                    # Update hash silently so we don't re-check next time
                     state["seen_comments"][cid]["hash"] = chash
                     continue
-                print(f"    ✏️   Meaningful edit detected — resending")
+                print(f"    ✏️   Meaningful edit — resending")
             elif state["sent_per_post"].get(sent_key):
-                print(f"    ⏭️   Already sent for this post — skipping")
+                print(f"    ⏭️   Already sent")
                 continue
 
-            tag = "✅ New" if is_new else "✏️  Edited"
-            print(f"    {tag} — formatting with Claude...")
-            formatted = format_with_claude(
-                author_display, body, title, sport, is_edit=is_edited
-            )
-            message = build_message(
-                title, post_url, author_display, formatted, sport,
-                is_edit=is_edited
-            )
-
+            formatted = format_with_claude(author_display, body, title, sport, is_edit=is_edited)
+            message = build_message(title, post_url, author_display, formatted, sport, is_edit=is_edited)
             send_telegram(message)
-            state["seen_comments"][cid] = {
-                "hash": chash,
-                "date": post_date,
-                "body_preview": body[:500],  # Store for meaningful edit comparison
-            }
+            state["seen_comments"][cid] = {"hash": chash, "date": post_date, "body_preview": body[:500]}
             state["sent_per_post"][sent_key] = True
             sends += 1
 
             if is_new:
-                bets = parse_bets_with_claude(
-                    author_display, body, title, post_date, sport
-                )
-                state["pending_bets"] = [
-                    b for b in state["pending_bets"]
-                    if not b.get("id", "").startswith(f"{cid}_")
-                ]
+                bets = parse_bets_with_claude(author_display, body, title, post_date, sport)
+                state["pending_bets"] = [b for b in state["pending_bets"]
+                                         if not b.get("id", "").startswith(f"{cid}_")]
                 stored = 0
                 for i, bet in enumerate(bets):
                     if not bet.get("description"):
                         continue
                     state["pending_bets"].append({
-                        "id":          f"{cid}_{i}",
-                        "user":        author_display,
-                        "date":        post_date,
-                        "sport":       sport,
-                        "post_title":  title,
-                        "post_url":    post_url,
+                        "id": f"{cid}_{i}", "user": author_display,
+                        "date": post_date, "sport": sport,
+                        "post_title": title, "post_url": post_url,
                         "description": bet.get("description", ""),
-                        "player":      bet.get("player"),
-                        "team":        bet.get("team"),
-                        "opponent":    bet.get("opponent"),
-                        "bet_type":    bet.get("bet_type", "other"),
-                        "stat":        bet.get("stat"),
-                        "line":        bet.get("line"),
-                        "direction":   bet.get("direction"),
-                        "confidence":  bet.get("confidence"),
-                        "result":      None,
+                        "player": bet.get("player"), "team": bet.get("team"),
+                        "opponent": bet.get("opponent"),
+                        "bet_type": bet.get("bet_type", "other"),
+                        "stat": bet.get("stat"), "line": bet.get("line"),
+                        "direction": bet.get("direction"),
+                        "confidence": bet.get("confidence"), "result": None,
                     })
                     stored += 1
-                print(f"    💾  Stored {stored} bet(s) for {post_date}")
+                print(f"    💾  Stored {stored} bet(s)")
 
     save_state(state)
-    print(f"\n✅  Done — {sends} message(s) sent.")
+    print(f"\n✅  Bot v{VERSION} done — {sends} message(s) sent.")
 
 
 if __name__ == "__main__":

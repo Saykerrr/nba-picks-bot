@@ -1,3 +1,8 @@
+"""
+NBA/MLB/NCAABB Grader  —  v4.0  (2026-03-26)
+Grades pending bets from state.json against ESPN boxscores.
+"""
+
 import requests
 import json
 import os
@@ -6,7 +11,8 @@ import time
 import re
 from datetime import datetime, timezone, timedelta
 
-# ── Config ────────────────────────────────────────────────────────────────────
+VERSION = "4.0"
+
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID   = os.environ["TELEGRAM_CHAT_ID"]
 ANTHROPIC_API_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
@@ -14,71 +20,49 @@ ANTHROPIC_API_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
 STATE_FILE = "state.json"
 HEADERS    = {"User-Agent": "Mozilla/5.0 nba-picks-bot/1.0"}
 
-RESULT_ICON = {
-    "win": "✅", "loss": "❌", "push": "➡️",
-    "unknown": "❓", "dnp": "🚫",
-}
-
+RESULT_ICON = {"win": "✅", "loss": "❌", "push": "➡️", "unknown": "❓", "dnp": "🚫"}
 SPORT_EMOJI = {"nba": "🏀", "ncaabb": "🏀", "mlb": "⚾"}
 
-# ── ESPN endpoints per sport ──────────────────────────────────────────────────
 ESPN_CONFIG = {
-    "nba": {
-        "scoreboard": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates={}",
-        "summary":    "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event={}",
-    },
-    "ncaabb": {
-        "scoreboard": "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates={}&limit=100",
-        "summary":    "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/summary?event={}",
-    },
-    "mlb": {
-        "scoreboard": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates={}",
-        "summary":    "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event={}",
-    },
+    "nba":    {"scoreboard": "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates={}",
+               "summary":    "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary?event={}"},
+    "ncaabb": {"scoreboard": "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates={}&limit=100",
+               "summary":    "https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/summary?event={}"},
+    "mlb":    {"scoreboard": "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates={}",
+               "summary":    "https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/summary?event={}"},
 }
 
-# ── Stat mappings ─────────────────────────────────────────────────────────────
-# Basketball (NBA + NCAABB)
 BASKETBALL_STAT_MAP = {
-    "PTS": "PTS", "P": "PTS", "POINTS": "PTS", "PT": "PTS",
+    "PTS": "PTS", "P": "PTS", "POINTS": "PTS",
     "REB": "REB", "R": "REB", "REBOUNDS": "REB",
     "AST": "AST", "A": "AST", "ASSISTS": "AST",
-    "3PM": "3PM", "3S": "3PM", "3": "3PM", "THREES": "3PM",
-    "3'S": "3PM", "THREE": "3PM", "TPM": "3PM",
-    "BLK": "BLK", "BLOCKS": "BLK",
-    "STL": "STL", "STEALS": "STL",
+    "3PM": "3PM", "3S": "3PM", "3": "3PM", "THREES": "3PM", "3'S": "3PM", "TPM": "3PM",
+    "BLK": "BLK", "STL": "STL",
     "PRA": "PRA", "PA": "PA", "PR": "PR", "RA": "RA",
 }
-
-# Baseball (MLB)
 MLB_STAT_MAP = {
-    "H": "H", "HITS": "H", "HIT": "H",
-    "HR": "HR", "HOMERUNS": "HR", "HOME RUNS": "HR",
-    "RBI": "RBI", "RBIS": "RBI",
-    "R": "R", "RUNS": "R", "RUN": "R",
-    "SB": "SB", "STOLEN BASES": "SB", "STEALS": "SB",
-    "TB": "TB", "TOTAL BASES": "TB",
-    "K": "K", "SO": "K", "STRIKEOUTS": "K", "KS": "K",
-    "BB": "BB", "WALKS": "BB",
-    "ER": "ER", "EARNED RUNS": "ER",
-    "IP": "IP", "INNINGS": "IP", "INNINGS PITCHED": "IP",
-    "HITS_ALLOWED": "HITS_ALLOWED", "HA": "HITS_ALLOWED",
+    "H": "H", "HITS": "H", "HR": "HR", "RBI": "RBI", "R": "R", "RUNS": "R",
+    "SB": "SB", "TB": "TB", "TOTAL BASES": "TB",
+    "K": "K", "SO": "K", "STRIKEOUTS": "K",
+    "BB": "BB", "ER": "ER", "IP": "IP", "HITS_ALLOWED": "HITS_ALLOWED",
+}
+
+def get_stat_map(sport):
+    return MLB_STAT_MAP if sport == "mlb" else BASKETBALL_STAT_MAP
+
+NICKNAME_MAP = {
+    "kat": "karl-anthony towns", "sga": "shai gilgeous-alexander",
+    "ad": "anthony davis", "pg": "paul george",
+    "rj": "rj barrett", "cj": "cj mccollum", "shohei": "shohei ohtani",
 }
 
 
-def get_stat_map(sport):
-    if sport == "mlb":
-        return MLB_STAT_MAP
-    return BASKETBALL_STAT_MAP
-
-
-# ── State ─────────────────────────────────────────────────────────────────────
+# ── State / Telegram ─────────────────────────────────────────────────────────
 def load_state():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE) as f:
             return json.load(f)
     return {"pending_bets": [], "graded_bets": [], "stats": {}}
-
 
 def save_state(state):
     if len(state.get("graded_bets", [])) > 500:
@@ -86,790 +70,418 @@ def save_state(state):
     with open(STATE_FILE, "w") as f:
         json.dump(state, f, indent=2)
 
-
-def escape_html(text):
-    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
+def escape_html(t):
+    return str(t).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
 
 def split_message(text, limit=4000):
-    if len(text) <= limit:
-        return [text]
-    chunks, current = [], ""
+    if len(text) <= limit: return [text]
+    chunks, cur = [], ""
     for line in text.splitlines(keepends=True):
-        if len(current) + len(line) > limit:
-            if current:
-                chunks.append(current.rstrip())
-            current = line
-        else:
-            current += line
-    if current.strip():
-        chunks.append(current.rstrip())
+        if len(cur) + len(line) > limit:
+            if cur: chunks.append(cur.rstrip())
+            cur = line
+        else: cur += line
+    if cur.strip(): chunks.append(cur.rstrip())
     return chunks or [text[:limit]]
-
 
 def send_telegram(text):
     for chunk in split_message(text):
-        resp = requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            json={
-                "chat_id":                  TELEGRAM_CHAT_ID,
-                "text":                     chunk,
-                "parse_mode":               "HTML",
-                "disable_web_page_preview": True,
-            },
-            timeout=15,
-        )
-        if not resp.ok:
-            print(f"Telegram error: {resp.text}", file=sys.stderr)
+        resp = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": chunk,
+                  "parse_mode": "HTML", "disable_web_page_preview": True}, timeout=15)
+        if not resp.ok: print(f"TG error: {resp.text}", file=sys.stderr)
         time.sleep(0.3)
 
 
-# ── ESPN data fetching ────────────────────────────────────────────────────────
+# ── ESPN ──────────────────────────────────────────────────────────────────────
 def espn_get(url):
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=15)
-        resp.raise_for_status()
-        return resp.json()
+        r = requests.get(url, headers=HEADERS, timeout=15); r.raise_for_status(); return r.json()
     except Exception as e:
-        print(f"  ESPN error: {e}", file=sys.stderr)
-        return {}
+        print(f"  ESPN err: {e}", file=sys.stderr); return {}
 
-
-def get_scoreboard(sport, date_yyyymmdd):
+def get_scoreboard(sport, yyyymmdd):
     cfg = ESPN_CONFIG.get(sport)
-    if not cfg:
-        return []
-    data = espn_get(cfg["scoreboard"].format(date_yyyymmdd))
-    return data.get("events", [])
+    return espn_get(cfg["scoreboard"].format(yyyymmdd)).get("events", []) if cfg else []
 
-
-def get_boxscore(sport, game_id):
+def get_boxscore(sport, gid):
     cfg = ESPN_CONFIG.get(sport)
-    if not cfg:
-        return {}
-    return espn_get(cfg["summary"].format(game_id))
+    return espn_get(cfg["summary"].format(gid)) if cfg else {}
 
-
-# ── Stat parsing helpers ─────────────────────────────────────────────────────
-def parse_made_attempted(val):
-    """Parse "4-6" → (4, 6) or plain number → (N, None)."""
+def parse_made_att(val):
     if isinstance(val, str) and "-" in val:
-        parts = val.split("-")
-        try:
-            return int(parts[0]), int(parts[1])
-        except (ValueError, IndexError):
-            return 0, 0
-    try:
-        return int(float(val or 0)), None
-    except (ValueError, TypeError):
-        return 0, None
+        p = val.split("-")
+        try: return int(p[0]), int(p[1])
+        except: return 0, 0
+    try: return int(float(val or 0)), None
+    except: return 0, None
 
-
-def parse_minutes(val):
-    """Parse "32:14" or plain number."""
+def parse_mins(val):
     if isinstance(val, str) and ":" in val:
-        try:
-            return float(val.split(":")[0])
-        except (ValueError, IndexError):
-            return 0.0
-    try:
-        return float(val or 0)
-    except (ValueError, TypeError):
-        return 0.0
+        try: return float(val.split(":")[0])
+        except: return 0.0
+    try: return float(val or 0)
+    except: return 0.0
 
-
-def safe_float(raw_map, key):
+def sf(raw_map, key):
     v = raw_map.get(key, 0)
-    try:
-        return float(v or 0)
-    except (ValueError, TypeError):
-        return 0.0
+    try: return float(v or 0)
+    except: return 0.0
 
-
-# ── Basketball stat builder (NBA + NCAABB) ────────────────────────────────────
 def build_basketball_stats(games, sport):
     players = {}
     for game in games:
-        game_id = game.get("id")
-        if not game_id:
-            continue
-        box = get_boxscore(sport, game_id)
-        time.sleep(0.5)
-
-        for team_entry in box.get("boxscore", {}).get("players", []):
-            team_abbr = team_entry.get("team", {}).get("abbreviation", "")
-            for stat_group in team_entry.get("statistics", []):
-                names = stat_group.get("names", [])
-                for athlete_entry in stat_group.get("athletes", []):
-                    athlete  = athlete_entry.get("athlete", {})
-                    fullname = athlete.get("displayName", "")
-                    raw      = athlete_entry.get("stats", [])
-                    if not fullname:
-                        continue
-
-                    raw_map = {names[i]: raw[i] for i in range(min(len(names), len(raw)))}
-
-                    mins = parse_minutes(raw_map.get("MIN", "0"))
-                    played = mins > 0
-
-                    fg_made,  _ = parse_made_attempted(raw_map.get("FG", "0"))
-                    tpm_made, _ = parse_made_attempted(raw_map.get("3PT", "0"))
-                    ft_made,  _ = parse_made_attempted(raw_map.get("FT", "0"))
-
-                    pts = safe_float(raw_map, "PTS")
-                    reb = safe_float(raw_map, "REB")
-                    ast = safe_float(raw_map, "AST")
-                    blk = safe_float(raw_map, "BLK")
-                    stl = safe_float(raw_map, "STL")
-
-                    s = {
-                        "PTS": pts, "REB": reb, "AST": ast,
-                        "3PM": float(tpm_made), "BLK": blk, "STL": stl,
-                        "FGM": float(fg_made), "FTM": float(ft_made),
-                        "PRA": pts + reb + ast,
-                        "PR":  pts + reb, "PA": pts + ast, "RA": reb + ast,
-                    }
-
-                    players[fullname.lower()] = {
-                        "name": fullname, "team": team_abbr,
-                        "stats": s, "played": played,
-                    }
-                    print(f"    {sport.upper()}: {fullname} | PTS:{pts} REB:{reb} "
-                          f"AST:{ast} 3PM:{tpm_made} | played:{played}")
+        gid = game.get("id")
+        if not gid: continue
+        box = get_boxscore(sport, gid); time.sleep(0.5)
+        for te in box.get("boxscore",{}).get("players",[]):
+            team_abbr = te.get("team",{}).get("abbreviation","")
+            for sg in te.get("statistics",[]):
+                names = sg.get("names",[])
+                for ae in sg.get("athletes",[]):
+                    fn = ae.get("athlete",{}).get("displayName","")
+                    raw = ae.get("stats",[])
+                    if not fn: continue
+                    rm = {names[i]: raw[i] for i in range(min(len(names),len(raw)))}
+                    mins = parse_mins(rm.get("MIN","0"))
+                    tpm,_ = parse_made_att(rm.get("3PT","0"))
+                    fg,_  = parse_made_att(rm.get("FG","0"))
+                    ft,_  = parse_made_att(rm.get("FT","0"))
+                    pts,reb,ast = sf(rm,"PTS"),sf(rm,"REB"),sf(rm,"AST")
+                    blk,stl = sf(rm,"BLK"),sf(rm,"STL")
+                    players[fn.lower()] = {
+                        "name":fn,"team":team_abbr,"played":mins>0,
+                        "stats":{"PTS":pts,"REB":reb,"AST":ast,"3PM":float(tpm),
+                                 "BLK":blk,"STL":stl,"FGM":float(fg),"FTM":float(ft),
+                                 "PRA":pts+reb+ast,"PR":pts+reb,"PA":pts+ast,"RA":reb+ast}}
+                    print(f"    {sport.upper()}: {fn} | PTS:{pts} REB:{reb} AST:{ast} 3PM:{tpm}")
     return players
 
-
-# ── MLB stat builder ──────────────────────────────────────────────────────────
 def build_mlb_stats(games):
-    """
-    MLB boxscore structure: boxscore.players[].statistics[] has separate groups
-    for batters and pitchers.  Batter stat names typically include:
-      AB, R, H, 2B, 3B, HR, RBI, BB, SO, SB, AVG, OBP, SLG
-    Pitcher stat names:
-      IP, H, R, ER, BB, K, HR, PC-ST, ERA
-
-    We merge all into one dict keyed by player name.
-    """
     players = {}
     for game in games:
-        game_id = game.get("id")
-        if not game_id:
-            continue
-        box = get_boxscore("mlb", game_id)
-        time.sleep(0.5)
-
-        for team_entry in box.get("boxscore", {}).get("players", []):
-            team_abbr = team_entry.get("team", {}).get("abbreviation", "")
-
-            for stat_group in team_entry.get("statistics", []):
-                group_type = stat_group.get("type", "")  # "batting" or "pitching"
-                names = stat_group.get("names", [])
-
-                for athlete_entry in stat_group.get("athletes", []):
-                    athlete  = athlete_entry.get("athlete", {})
-                    fullname = athlete.get("displayName", "")
-                    raw      = athlete_entry.get("stats", [])
-                    if not fullname:
-                        continue
-
-                    raw_map = {names[i]: raw[i] for i in range(min(len(names), len(raw)))}
-
-                    key = fullname.lower()
-
-                    # Initialize if new
+        gid = game.get("id")
+        if not gid: continue
+        box = get_boxscore("mlb", gid); time.sleep(0.5)
+        for te in box.get("boxscore",{}).get("players",[]):
+            ta = te.get("team",{}).get("abbreviation","")
+            for sg in te.get("statistics",[]):
+                gt = sg.get("type",""); names = sg.get("names",[])
+                for ae in sg.get("athletes",[]):
+                    fn = ae.get("athlete",{}).get("displayName","")
+                    raw = ae.get("stats",[])
+                    if not fn: continue
+                    rm = {names[i]: raw[i] for i in range(min(len(names),len(raw)))}
+                    key = fn.lower()
                     if key not in players:
-                        players[key] = {
-                            "name": fullname, "team": team_abbr,
-                            "stats": {}, "played": True,
-                            "is_pitcher": False,
-                        }
-
+                        players[key] = {"name":fn,"team":ta,"stats":{},"played":True,"is_pitcher":False}
                     s = players[key]["stats"]
-
-                    if "batting" in group_type.lower() or "AB" in names:
-                        # Batter stats
-                        s["H"]  = safe_float(raw_map, "H")
-                        s["HR"] = safe_float(raw_map, "HR")
-                        s["RBI"] = safe_float(raw_map, "RBI")
-                        s["R"]  = safe_float(raw_map, "R")
-                        s["BB"] = safe_float(raw_map, "BB")
-                        s["SB"] = safe_float(raw_map, "SB")
-                        s["AB"] = safe_float(raw_map, "AB")
-                        so_bat  = safe_float(raw_map, "SO")
-                        s["K_BAT"] = so_bat  # Batter strikeouts (separate from pitcher K)
-
-                        # Total bases: 1B + 2*2B + 3*3B + 4*HR
-                        singles = s["H"] - safe_float(raw_map, "2B") - safe_float(raw_map, "3B") - s["HR"]
-                        s["TB"] = max(0, singles + 2*safe_float(raw_map, "2B")
-                                      + 3*safe_float(raw_map, "3B") + 4*s["HR"])
-
-                        # H+R+RBI combo (common prop)
-                        s["HRRBI"] = s["H"] + s["R"] + s["RBI"]
-
-                        played = s.get("AB", 0) > 0 or s.get("R", 0) > 0
-                        players[key]["played"] = played
-
-                        print(f"    MLB BAT: {fullname} | H:{s['H']:.0f} HR:{s['HR']:.0f} "
-                              f"RBI:{s['RBI']:.0f} R:{s['R']:.0f} TB:{s['TB']:.0f} "
-                              f"SB:{s['SB']:.0f}")
-
-                    elif "pitching" in group_type.lower() or "IP" in names:
-                        # Pitcher stats
-                        players[key]["is_pitcher"] = True
-                        ip_raw = raw_map.get("IP", "0")
-                        try:
-                            s["IP"] = float(ip_raw or 0)
-                        except (ValueError, TypeError):
-                            s["IP"] = 0.0
-
-                        s["K"]  = safe_float(raw_map, "K")
-                        s["ER"] = safe_float(raw_map, "ER")
-                        s["HITS_ALLOWED"] = safe_float(raw_map, "H")
-                        s["BB_PITCH"] = safe_float(raw_map, "BB")
-                        s["HR_ALLOWED"] = safe_float(raw_map, "HR")
-
-                        players[key]["played"] = s["IP"] > 0
-
-                        print(f"    MLB PIT: {fullname} | IP:{s['IP']} K:{s['K']:.0f} "
-                              f"ER:{s['ER']:.0f} H:{s['HITS_ALLOWED']:.0f}")
-
+                    if "batting" in gt.lower() or "AB" in names:
+                        s["H"]=sf(rm,"H"); s["HR"]=sf(rm,"HR"); s["RBI"]=sf(rm,"RBI")
+                        s["R"]=sf(rm,"R"); s["BB"]=sf(rm,"BB"); s["SB"]=sf(rm,"SB")
+                        s["AB"]=sf(rm,"AB")
+                        singles = s["H"]-sf(rm,"2B")-sf(rm,"3B")-s["HR"]
+                        s["TB"]=max(0,singles+2*sf(rm,"2B")+3*sf(rm,"3B")+4*s["HR"])
+                        players[key]["played"] = s["AB"]>0 or s["R"]>0
+                    elif "pitching" in gt.lower() or "IP" in names:
+                        players[key]["is_pitcher"]=True
+                        try: s["IP"]=float(rm.get("IP",0) or 0)
+                        except: s["IP"]=0.0
+                        s["K"]=sf(rm,"K"); s["ER"]=sf(rm,"ER")
+                        s["HITS_ALLOWED"]=sf(rm,"H"); s["BB_PITCH"]=sf(rm,"BB")
+                        players[key]["played"]=s["IP"]>0
     return players
 
-
-# ── Unified stat builder ──────────────────────────────────────────────────────
 def build_player_stats(games, sport):
-    if sport == "mlb":
-        return build_mlb_stats(games)
-    return build_basketball_stats(games, sport)
-
+    return build_mlb_stats(games) if sport=="mlb" else build_basketball_stats(games, sport)
 
 def build_game_results(games):
     results = []
     for game in games:
-        comps = game.get("competitions", [{}])[0]
-        teams = comps.get("competitors", [])
-        if len(teams) < 2:
-            continue
-        home = next((t for t in teams if t.get("homeAway") == "home"), teams[0])
-        away = next((t for t in teams if t.get("homeAway") == "away"), teams[1])
-        hs   = int(home.get("score", 0) or 0)
-        as_  = int(away.get("score", 0) or 0)
-        ht   = home.get("team", {}).get("abbreviation", "")
-        at   = away.get("team", {}).get("abbreviation", "")
-        results.append({
-            "home": ht, "away": at,
-            "home_score": hs, "away_score": as_,
-            "total": hs + as_,
-            "winner": ht if hs > as_ else at,
-        })
+        comps = game.get("competitions",[{}])[0]
+        teams = comps.get("competitors",[])
+        if len(teams)<2: continue
+        home = next((t for t in teams if t.get("homeAway")=="home"), teams[0])
+        away = next((t for t in teams if t.get("homeAway")=="away"), teams[1])
+        hs,as_ = int(home.get("score",0) or 0), int(away.get("score",0) or 0)
+        ht = home.get("team",{}).get("abbreviation","")
+        at = away.get("team",{}).get("abbreviation","")
+        results.append({"home":ht,"away":at,"home_score":hs,"away_score":as_,
+                        "total":hs+as_,"winner":ht if hs>as_ else at})
     return results
 
-
-# ── Player Lookup ─────────────────────────────────────────────────────────────
-NICKNAME_MAP = {
-    "kat": "karl-anthony towns",
-    "sga": "shai gilgeous-alexander",
-    "ad":  "anthony davis",
-    "pg":  "paul george",
-    "rj":  "rj barrett",
-    "cj":  "cj mccollum",
-    "shohei": "shohei ohtani",
-}
-
-
-def find_player(player_name, player_stats):
-    if not player_name or not player_stats:
-        return None
-    name_lower = player_name.lower().strip()
-
-    if name_lower in player_stats:
-        return player_stats[name_lower]
-
-    parts = [p for p in name_lower.split() if len(p) > 2]
-    for pname, pd in player_stats.items():
-        if parts and all(p in pname for p in parts):
-            return pd
-
-    last = name_lower.split()[-1] if name_lower.split() else ""
-    if len(last) > 4:
-        matches = [pd for pname, pd in player_stats.items()
-                   if last in pname.split()]
-        if len(matches) == 1:
-            return matches[0]
-
-    mapped = NICKNAME_MAP.get(name_lower)
-    if mapped and mapped in player_stats:
-        return player_stats[mapped]
-
+def find_player(name, ps):
+    if not name or not ps: return None
+    nl = name.lower().strip()
+    if nl in ps: return ps[nl]
+    parts = [p for p in nl.split() if len(p)>2]
+    for pn,pd in ps.items():
+        if parts and all(p in pn for p in parts): return pd
+    last = nl.split()[-1] if nl.split() else ""
+    if len(last)>4:
+        ms = [pd for pn,pd in ps.items() if last in pn.split()]
+        if len(ms)==1: return ms[0]
+    mapped = NICKNAME_MAP.get(nl)
+    if mapped and mapped in ps: return ps[mapped]
     return None
 
 
 # ── Grading ───────────────────────────────────────────────────────────────────
-def grade_single_bet(bet, player_stats, game_results, sport="nba"):
-    btype     = bet.get("bet_type", "other")
-    direction = (bet.get("direction") or "").lower()
-    line      = bet.get("line")
-    player    = bet.get("player") or ""
-    stat_cat  = (bet.get("stat") or "").upper()
-    team      = (bet.get("team") or "").upper()
-    opponent  = (bet.get("opponent") or "").upper()
+def grade_single_bet(bet, ps, gr, sport="nba"):
+    bt = bet.get("bet_type","other")
+    d  = (bet.get("direction") or "").lower()
+    ln = bet.get("line")
+    pl = bet.get("player") or ""
+    sc = (bet.get("stat") or "").upper()
+    tm = (bet.get("team") or "").upper()
+    op = (bet.get("opponent") or "").upper()
+    sc = get_stat_map(sport).get(sc, sc)
 
-    # Normalize stat through sport-specific map
-    stat_map = get_stat_map(sport)
-    stat_cat = stat_map.get(stat_cat, stat_cat)
-
-    if btype == "player_prop" and player and stat_cat and line is not None:
-        pdata = find_player(player, player_stats)
-
-        if pdata is not None:
-            if not pdata.get("played", True):
-                return "dnp"
-            actual = pdata["stats"].get(stat_cat)
+    if bt=="player_prop" and pl and sc and ln is not None:
+        pd = find_player(pl, ps)
+        if pd is not None:
+            if not pd.get("played",True): return "dnp"
+            actual = pd["stats"].get(sc)
             if actual is not None:
                 try:
-                    actual = float(actual)
-                    line   = float(line)
-                    print(f"    Grading {player}: {stat_cat} "
-                          f"actual={actual} line={line} dir={direction}")
-                    if direction == "over":
-                        if actual > line:   return "win"
-                        elif actual == line: return "push"
-                        else:               return "loss"
-                    elif direction == "under":
-                        if actual < line:   return "win"
-                        elif actual == line: return "push"
-                        else:               return "loss"
-                except (ValueError, TypeError):
-                    pass
-        elif player_stats:
-            print(f"    ⚠️  {player} not found in ESPN data — marking DNP")
-            return "dnp"
-
-    elif btype == "total" and line is not None:
-        for g in game_results:
-            if team in (g["home"], g["away"]) or opponent in (g["home"], g["away"]):
+                    a,l = float(actual),float(ln)
+                    print(f"    Grade {pl}: {sc} actual={a} line={l} dir={d}")
+                    if d=="over":  return "win" if a>l else ("push" if a==l else "loss")
+                    if d=="under": return "win" if a<l else ("push" if a==l else "loss")
+                except: pass
+        elif ps:
+            print(f"    ⚠️  {pl} not found → DNP"); return "dnp"
+    elif bt=="total" and ln is not None:
+        for g in gr:
+            if tm in (g["home"],g["away"]) or op in (g["home"],g["away"]):
                 try:
-                    tot  = float(g["total"])
-                    line = float(line)
-                    if direction == "over":
-                        return "win" if tot > line else ("push" if tot == line else "loss")
-                    elif direction == "under":
-                        return "win" if tot < line else ("push" if tot == line else "loss")
-                except (ValueError, TypeError):
-                    pass
-
-    elif btype == "moneyline" and team:
-        for g in game_results:
-            if team in (g["home"], g["away"]):
-                return "win" if g["winner"] == team else "loss"
-
-    elif btype == "spread" and team and line is not None:
-        for g in game_results:
-            if team in (g["home"], g["away"]):
+                    t,l=float(g["total"]),float(ln)
+                    if d=="over": return "win" if t>l else ("push" if t==l else "loss")
+                    if d=="under": return "win" if t<l else ("push" if t==l else "loss")
+                except: pass
+    elif bt=="moneyline" and tm:
+        for g in gr:
+            if tm in (g["home"],g["away"]): return "win" if g["winner"]==tm else "loss"
+    elif bt=="spread" and tm and ln is not None:
+        for g in gr:
+            if tm in (g["home"],g["away"]):
                 try:
-                    line = float(line)
-                    team_score = g["home_score"] if g["home"] == team else g["away_score"]
-                    opp_score  = g["away_score"] if g["home"] == team else g["home_score"]
-                    diff = team_score + line - opp_score
-                    if diff > 0:    return "win"
-                    elif diff == 0: return "push"
-                    else:           return "loss"
-                except (ValueError, TypeError):
-                    pass
+                    l=float(ln)
+                    ts=g["home_score"] if g["home"]==tm else g["away_score"]
+                    os_=g["away_score"] if g["home"]==tm else g["home_score"]
+                    diff=ts+l-os_
+                    return "win" if diff>0 else ("push" if diff==0 else "loss")
+                except: pass
+    return grade_with_claude(bet, ps, gr)
 
-    return grade_with_claude(bet, player_stats, game_results)
-
-
-def grade_with_claude(bet, player_stats, game_results):
-    if not ANTHROPIC_API_KEY:
-        return "unknown"
-
-    relevant = {}
-    pdata = find_player(bet.get("player") or "", player_stats)
-    if pdata:
-        relevant[pdata["name"]] = pdata["stats"]
-
-    prompt = f"""Grade this bet using the stats provided.
-
-BET: {bet.get('description', 'N/A')}
-Player: {bet.get('player')} | Stat: {bet.get('stat')} | Line: {bet.get('line')} | Direction: {bet.get('direction')}
-
-PLAYER STATS:
-{json.dumps(relevant, indent=2)}
-
-GAME RESULTS:
-{json.dumps(game_results[:5], indent=2)}
-
-Reply with ONLY one word: win, loss, push, dnp, or unknown."""
-
+def grade_with_claude(bet, ps, gr):
+    if not ANTHROPIC_API_KEY: return "unknown"
+    rel = {}
+    pd = find_player(bet.get("player") or "", ps)
+    if pd: rel[pd["name"]] = pd["stats"]
+    prompt = (f"Grade this bet:\nBET: {bet.get('description','N/A')}\n"
+              f"Player: {bet.get('player')} | Stat: {bet.get('stat')} | Line: {bet.get('line')} | Dir: {bet.get('direction')}\n"
+              f"STATS: {json.dumps(rel,indent=2)}\nGAMES: {json.dumps(gr[:5],indent=2)}\n"
+              f"Reply ONLY: win, loss, push, dnp, or unknown.")
     try:
-        resp = requests.post(
-            "https://api.anthropic.com/v1/messages",
-            headers={
-                "Content-Type": "application/json",
-                "x-api-key": ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 10,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-            timeout=20,
-        )
-        if resp.ok:
-            result = resp.json()["content"][0]["text"].strip().lower()
-            if result in ("win", "loss", "push", "dnp", "unknown"):
-                return result
-    except Exception as e:
-        print(f"Claude grade error: {e}", file=sys.stderr)
+        r = requests.post("https://api.anthropic.com/v1/messages",
+            headers={"Content-Type":"application/json","x-api-key":ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},
+            json={"model":"claude-haiku-4-5-20251001","max_tokens":10,
+                  "messages":[{"role":"user","content":prompt}]},timeout=20)
+        if r.ok:
+            res=r.json()["content"][0]["text"].strip().lower()
+            if res in ("win","loss","push","dnp","unknown"): return res
+    except: pass
     return "unknown"
 
 
-# ── Parlay Parsing ────────────────────────────────────────────────────────────
-def parse_parlay_legs(description, sport="nba"):
-    desc = re.sub(r'^[^:]+:\s*', '', description, count=1)
-    desc = re.sub(r'\s*\([+-]\d+\)\s*$', '', desc).strip()
-    raw_legs = re.split(r'\s+\+\s+', desc)
-    return [parse_one_leg(leg.strip(), sport) for leg in raw_legs if leg.strip()]
-
+# ── Parlay ────────────────────────────────────────────────────────────────────
+def parse_parlay_legs(desc, sport="nba"):
+    d = re.sub(r'^[^:]+:\s*','',desc,count=1)
+    d = re.sub(r'\s*\([+-]\d+\)\s*$','',d).strip()
+    return [parse_one_leg(l.strip(),sport) for l in re.split(r'\s+\+\s+',d) if l.strip()]
 
 def parse_one_leg(leg, sport="nba"):
-    stat_map = get_stat_map(sport)
-
-    # Clean "3's"/"3s" → "3PM"
-    clean_leg = re.sub(r"(\d)\s*3'?s\b", r"\1 3PM", leg, flags=re.IGNORECASE)
-
-    # Pattern 1: "Player O/U line STAT"
-    m = re.match(
-        r'(.+?)\s+(O|U|Over|Under)\s*([\d.]+)\+?\s*([A-Za-z_0-9]+)?',
-        clean_leg, re.IGNORECASE
-    )
+    sm = get_stat_map(sport)
+    cl = re.sub(r"(\d)\s*3'?s\b", r"\1 3PM", leg, flags=re.IGNORECASE)
+    m = re.match(r'(.+?)\s+(O|U|Over|Under)\s*([\d.]+)\+?\s*([A-Za-z_0-9]+)?', cl, re.IGNORECASE)
     if m:
-        player_name = m.group(1).strip()
-        direction   = "over" if m.group(2).lower() in ("o", "over") else "under"
-        line_val    = float(m.group(3))
-        stat_raw    = (m.group(4) or "PTS").upper().replace("+", "").strip()
-        stat        = stat_map.get(stat_raw, stat_raw)
-        return {
-            "description": leg, "player": player_name, "bet_type": "player_prop",
-            "stat": stat, "line": line_val, "direction": direction,
-            "team": None, "opponent": None,
-        }
-
-    # Pattern 2: "Player line+ STAT"
-    m2 = re.match(r'(.+?)\s+([\d.]+)\+\s*([A-Za-z_0-9]+)', clean_leg, re.IGNORECASE)
+        return {"description":leg,"player":m.group(1).strip(),"bet_type":"player_prop",
+                "stat":sm.get((m.group(4) or "PTS").upper(),m.group(4) or "PTS"),
+                "line":float(m.group(3)),
+                "direction":"over" if m.group(2).lower() in ("o","over") else "under",
+                "team":None,"opponent":None}
+    m2 = re.match(r'(.+?)\s+([\d.]+)\+\s*([A-Za-z_0-9]+)', cl, re.IGNORECASE)
     if m2:
-        player_name = m2.group(1).strip()
-        line_val    = float(m2.group(2))
-        stat_raw    = m2.group(3).upper().strip()
-        stat        = stat_map.get(stat_raw, stat_raw)
-        return {
-            "description": leg, "player": player_name, "bet_type": "player_prop",
-            "stat": stat, "line": line_val, "direction": "over",
-            "team": None, "opponent": None,
-        }
-
-    # Pattern 3: "Player line STAT"
-    m3 = re.match(r'(.+?)\s+([\d.]+)\s+([A-Za-z_0-9]+)', clean_leg, re.IGNORECASE)
+        return {"description":leg,"player":m2.group(1).strip(),"bet_type":"player_prop",
+                "stat":sm.get(m2.group(3).upper(),m2.group(3).upper()),
+                "line":float(m2.group(2)),"direction":"over","team":None,"opponent":None}
+    m3 = re.match(r'(.+?)\s+([\d.]+)\s+([A-Za-z_0-9]+)', cl, re.IGNORECASE)
     if m3:
-        player_name = m3.group(1).strip()
-        line_val    = float(m3.group(2))
-        stat_raw    = m3.group(3).upper().strip()
-        stat        = stat_map.get(stat_raw, stat_raw)
-        return {
-            "description": leg, "player": player_name, "bet_type": "player_prop",
-            "stat": stat, "line": line_val, "direction": "over",
-            "team": None, "opponent": None,
-        }
+        return {"description":leg,"player":m3.group(1).strip(),"bet_type":"player_prop",
+                "stat":sm.get(m3.group(3).upper(),m3.group(3).upper()),
+                "line":float(m3.group(2)),"direction":"over","team":None,"opponent":None}
+    return {"description":leg,"player":None,"bet_type":"other",
+            "stat":None,"line":None,"direction":None,"team":None,"opponent":None}
 
-    return {
-        "description": leg, "player": None, "bet_type": "other",
-        "stat": None, "line": None, "direction": None,
-        "team": None, "opponent": None,
-    }
-
-
-def grade_parlay(bet, player_stats, game_results, sport="nba"):
-    legs = parse_parlay_legs(bet.get("description", ""), sport)
-    if not legs:
-        return "unknown", []
-
+def grade_parlay(bet, ps, gr, sport="nba"):
+    legs = parse_parlay_legs(bet.get("description",""), sport)
+    if not legs: return "unknown", []
     leg_results = []
     for leg in legs:
-        result = grade_single_bet(leg, player_stats, game_results, sport)
-        leg_results.append({"description": leg["description"], "result": result})
-        print(f"      Leg: {leg['description'][:50]} → {result}")
-
-    # ── Parlay grading logic ──
-    # DNP legs are VOIDED (standard sportsbook behavior) — they don't count.
-    # The parlay is graded on the remaining active legs only.
-    active = [r for r in leg_results if r["result"] not in ("dnp",)]
-    results_set = {r["result"] for r in active} if active else set()
-
-    if not active:
-        # All legs DNP → entire parlay is void
-        overall = "dnp"
-    elif "loss" in results_set:
-        overall = "loss"
-    elif "unknown" in results_set:
-        overall = "unknown"
-    elif all(r["result"] in ("win", "push") for r in active):
-        non_push = [r for r in active if r["result"] != "push"]
-        overall  = "win" if non_push else "push"
-    else:
-        overall = "unknown"
-
-    return overall, leg_results
+        r = grade_single_bet(leg, ps, gr, sport)
+        leg_results.append({"description":leg["description"],"result":r})
+        print(f"      Leg: {leg['description'][:50]} → {r}")
+    # DNP legs VOIDED — only active legs count
+    active = [r for r in leg_results if r["result"] != "dnp"]
+    if not active: return "dnp", leg_results
+    rs = {r["result"] for r in active}
+    if "loss" in rs: return "loss", leg_results
+    if "unknown" in rs: return "unknown", leg_results
+    if all(r["result"] in ("win","push") for r in active):
+        return ("win" if any(r["result"]=="win" for r in active) else "push"), leg_results
+    return "unknown", leg_results
 
 
-# ── Message Formatting ────────────────────────────────────────────────────────
-def format_date_display(date_str):
-    """Convert "2026-03-24" → "24/03/2026"."""
-    try:
-        parts = date_str.split("-")
-        return f"{parts[2]}/{parts[1]}/{parts[0]}"
-    except (IndexError, AttributeError):
-        return date_str
-
+# ── Formatting ────────────────────────────────────────────────────────────────
+def fmt_date(ds):
+    """2026-03-24 → 24/03/2026"""
+    try: p=ds.split("-"); return f"{p[2]}/{p[1]}/{p[0]}"
+    except: return ds
 
 def format_daily_results(graded, date_str, sport=None):
-    if not graded:
-        return None
-
+    if not graded: return None
     by_user = {}
-    for bet in graded:
-        by_user.setdefault(bet["user"], []).append(bet)
-
-    date_display = format_date_display(date_str)
-    sport_emoji = SPORT_EMOJI.get(sport, "📊")
-    sport_label = (sport or "").upper()
-    if sport_label:
-        header = f"{sport_emoji} <b>{sport_label} Bet Results — {date_display}</b>"
-    else:
-        header = f"📊 <b>Bet Results — {date_display}</b>"
-    lines = [header, "━" * 30]
-
+    for b in graded: by_user.setdefault(b["user"],[]).append(b)
+    se = SPORT_EMOJI.get(sport,"📊")
+    sl = (sport or "").upper()
+    dd = fmt_date(date_str)
+    lines = [f"{se} <b>{sl} Bet Results — {dd}</b>" if sl else f"📊 <b>Bet Results — {dd}</b>",
+             "───────────────"]
     for user, bets in by_user.items():
-        straights = [b for b in bets if b.get("bet_type") != "parlay"]
-        parlays   = [b for b in bets if b.get("bet_type") == "parlay"]
-
-        sw = sum(1 for b in straights if b["result"] == "win")
-        sl = sum(1 for b in straights if b["result"] == "loss")
-        sp = sum(1 for b in straights if b["result"] == "push")
-        sd = sum(1 for b in straights if b["result"] in ("dnp", "unknown"))
-        pw = sum(1 for b in parlays if b["result"] == "win")
-        pl = sum(1 for b in parlays if b["result"] == "loss")
-
-        st = sw + sl
-        pt = pw + pl
-        s_rate = f"{round(sw/st*100,1)}%" if st > 0 else "—"
-        p_rate = f"{round(pw/pt*100,1)}%" if pt > 0 else "—"
-
+        st = [b for b in bets if b.get("bet_type")!="parlay"]
+        pa = [b for b in bets if b.get("bet_type")=="parlay"]
+        sw=sum(1 for b in st if b["result"]=="win")
+        sl_=sum(1 for b in st if b["result"]=="loss")
+        sp=sum(1 for b in st if b["result"]=="push")
+        sd=sum(1 for b in st if b["result"] in ("dnp","unknown"))
+        pw=sum(1 for b in pa if b["result"]=="win")
+        pl=sum(1 for b in pa if b["result"]=="loss")
+        stt=sw+sl_; ptt=pw+pl
+        sr=f"{round(sw/stt*100,1)}%" if stt>0 else "—"
+        pr=f"{round(pw/ptt*100,1)}%" if ptt>0 else "—"
         lines.append(f"\n💬 <b>u/{user}</b>")
-        push_tag = f"  <i>({sp} push)</i>" if sp else ""
-        void_tag = f"  <i>({sd} void/DNP)</i>" if sd else ""
-        lines.append(f"  📈 Straight: <b>{sw}W / {sl}L</b>  {s_rate}{push_tag}{void_tag}")
-        lines.append(f"  🎰 Parlays:  <b>{pw}W / {pl}L</b>  {p_rate}")
-
-        if straights:
+        push_t=f"  <i>({sp} push)</i>" if sp else ""
+        void_t=f"  <i>({sd} void/DNP)</i>" if sd else ""
+        lines.append(f"  📈 Straight: <b>{sw}W / {sl_}L</b>  {sr}{push_t}{void_t}")
+        lines.append(f"  🎰 Parlays:  <b>{pw}W / {pl}L</b>  {pr}")
+        if st:
             lines.append("\n<b>Individual Plays:</b>")
-            for bet in straights:
-                icon = RESULT_ICON.get(bet["result"], "❓")
-                desc = escape_html(bet.get("description", ""))
-                void = "  <i>(void — DNP)</i>" if bet["result"] == "dnp" else ""
-                lines.append(f"  {icon} {desc}{void}")
-
-        if parlays:
+            for b in st:
+                ic=RESULT_ICON.get(b["result"],"❓")
+                ds=escape_html(b.get("description",""))
+                vd="  <i>(void — DNP)</i>" if b["result"]=="dnp" else ""
+                lines.append(f"  {ic} {ds}{vd}")
+        if pa:
             lines.append("\n<b>Parlays:</b>")
-            for bet in parlays:
-                overall_icon = RESULT_ICON.get(bet["result"], "❓")
-                label = escape_html(
-                    bet.get("description", "Parlay").split(":")[0].strip()
-                )
-                lines.append(f"\n  {overall_icon} <b>{label}</b>")
-                for leg in bet.get("leg_results", []):
-                    leg_icon = RESULT_ICON.get(leg["result"], "❓")
-                    leg_desc = escape_html(leg['description'])
-                    dnp_tag = "  <i>(void — DNP)</i>" if leg["result"] == "dnp" else ""
-                    lines.append(f"      {leg_icon} {leg_desc}{dnp_tag}")
-
+            for b in pa:
+                oi=RESULT_ICON.get(b["result"],"❓")
+                lb=escape_html(b.get("description","Parlay").split(":")[0].strip())
+                lines.append(f"\n  {oi} <b>{lb}</b>")
+                for lg in b.get("leg_results",[]):
+                    li=RESULT_ICON.get(lg["result"],"❓")
+                    ld=escape_html(lg["description"])
+                    dt="  <i>(void — DNP)</i>" if lg["result"]=="dnp" else ""
+                    lines.append(f"      {li} {ld}{dt}")
     return "\n".join(lines)
 
-
 def format_overall_stats(stats, start_date):
-    if not stats:
-        return None
-
-    start_display = format_date_display(start_date)
-
-    lines = [
-        f"📈 <b>Overall Record</b>  <i>(since {start_display})</i>",
-        "━" * 30,
-    ]
-
-    for user, rec in stats.items():
-        sw = rec.get("straight_wins", 0)
-        sl = rec.get("straight_losses", 0)
-        sp = rec.get("straight_pushes", 0)
-        pw = rec.get("parlay_wins", 0)
-        pl = rec.get("parlay_losses", 0)
-
-        st = sw + sl
-        pt = pw + pl
-        tt = st + pt
-
-        s_rate = f"{round(sw/st*100,1)}%" if st > 0 else "—"
-        p_rate = f"{round(pw/pt*100,1)}%" if pt > 0 else "—"
-        t_rate = f"{round((sw+pw)/tt*100,1)}%" if tt > 0 else "—"
-
+    if not stats: return None
+    sd = fmt_date(start_date)
+    lines = [f"📈 <b>Overall Record</b>  <i>(since {sd})</i>", "───────────────"]
+    for user,rec in stats.items():
+        sw=rec.get("straight_wins",0); sl=rec.get("straight_losses",0)
+        sp=rec.get("straight_pushes",0); pw=rec.get("parlay_wins",0); pl=rec.get("parlay_losses",0)
+        stt=sw+sl; ptt=pw+pl; tt=stt+ptt
+        sr=f"{round(sw/stt*100,1)}%" if stt>0 else "—"
+        prr=f"{round(pw/ptt*100,1)}%" if ptt>0 else "—"
+        tr=f"{round((sw+pw)/tt*100,1)}%" if tt>0 else "—"
         lines.append(f"\n💬 <b>u/{user}</b>")
-        lines.append(
-            f"  📊 <b>Total Hit Rate:</b>  <b>{t_rate}</b>  "
-            f"({sw+pw}W / {sl+pl}L of {tt} bets)"
-        )
-        lines.append(
-            f"  🎯 <b>Individual:</b>  {sw}W / {sl}L"
-            + (f" / {sp}P" if sp else "")
-            + f"  →  {s_rate}"
-        )
-        lines.append(f"  🎰 <b>Parlays:</b>  {pw}W / {pl}L  →  {p_rate}")
-
+        lines.append(f"  📊 <b>Total Hit Rate:</b>  <b>{tr}</b>  ({sw+pw}W / {sl+pl}L of {tt} bets)")
+        lines.append(f"  🎯 <b>Individual:</b>  {sw}W / {sl}L" + (f" / {sp}P" if sp else "") + f"  →  {sr}")
+        lines.append(f"  🎰 <b>Parlays:</b>  {pw}W / {pl}L  →  {prr}")
     return "\n".join(lines)
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    print(f"🎯  Grader starting — "
-          f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
-
+    print(f"🎯  Grader v{VERSION} starting — {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
     state = load_state()
-    for key in ["pending_bets", "graded_bets"]:
-        if key not in state:
-            state[key] = []
-    if "stats" not in state:
-        state["stats"] = {}
+    for k in ["pending_bets","graded_bets"]:
+        if k not in state: state[k]=[]
+    if "stats" not in state: state["stats"]={}
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if "tracking_start" not in state: state["tracking_start"]=today
 
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-    if "tracking_start" not in state:
-        state["tracking_start"] = today_str
-
-    # Grade ALL pending bets from past dates
-    pending = [b for b in state["pending_bets"] if b.get("date", "9999") < today_str]
-
+    pending = [b for b in state["pending_bets"] if b.get("date","9999")<today]
     if not pending:
-        print(f"No pending bets for any past date — nothing to do.")
-        save_state(state)
-        return
+        print("No pending bets — done."); save_state(state); return
 
-    # Group by (date, sport) for efficient ESPN fetching
-    date_sport_pairs = sorted(set(
-        (b["date"], b.get("sport", "nba")) for b in pending
-    ))
-    print(f"  📋  {len(pending)} bets to grade across "
-          f"{len(date_sport_pairs)} date/sport combo(s)")
+    dsp = sorted(set((b["date"],b.get("sport","nba")) for b in pending))
+    print(f"  📋  {len(pending)} bets across {len(dsp)} date/sport combos")
 
-    # Fetch ESPN data for each (date, sport)
-    all_player_stats = {}  # {(date, sport): player_stats}
-    all_game_results = {}  # {(date, sport): game_results}
+    all_ps, all_gr = {}, {}
+    for ds,sp in dsp:
+        ed = ds.replace("-","")
+        print(f"\n  {SPORT_EMOJI.get(sp,'📊')}  {sp.upper()} {ds}...")
+        games = get_scoreboard(sp, ed)
+        print(f"      {len(games)} games")
+        if not games: continue
+        all_ps[(ds,sp)] = build_player_stats(games, sp)
+        all_gr[(ds,sp)] = build_game_results(games)
+        print(f"      {len(all_ps[(ds,sp)])} players"); time.sleep(1)
 
-    for date_str, sport in date_sport_pairs:
-        espn_date = date_str.replace("-", "")
-        print(f"\n  {SPORT_EMOJI.get(sport, '📊')}  "
-              f"Fetching {sport.upper()} data for {date_str}...")
-        games = get_scoreboard(sport, espn_date)
-        print(f"      {len(games)} games found")
-
-        if not games:
-            print(f"      ⚠️  No data for {sport.upper()} {date_str}")
-            continue
-
-        all_player_stats[(date_str, sport)] = build_player_stats(games, sport)
-        all_game_results[(date_str, sport)] = build_game_results(games)
-        print(f"      👤  {len(all_player_stats[(date_str, sport)])} players loaded")
-        time.sleep(1)
-
-    # Grade
-    all_graded = []
-    dates_graded = set()
-
+    all_graded = []; dates_graded = set()
     for bet in pending:
-        date_str = bet["date"]
-        sport    = bet.get("sport", "nba")
-        key      = (date_str, sport)
-
-        player_stats = all_player_stats.get(key, {})
-        game_results = all_game_results.get(key, [])
-
-        if not player_stats and not game_results:
-            print(f"  ⏭️  Skipping — no ESPN data for {sport.upper()} {date_str}")
-            continue
-
+        ds,sp = bet["date"],bet.get("sport","nba")
+        ps = all_ps.get((ds,sp),{}); gr = all_gr.get((ds,sp),[])
+        if not ps and not gr: continue
         user = bet["user"]
         if user not in state["stats"]:
-            state["stats"][user] = {
-                "straight_wins": 0, "straight_losses": 0,
-                "straight_pushes": 0,
-                "parlay_wins": 0, "parlay_losses": 0,
-            }
-        for k in ("straight_wins", "straight_losses", "straight_pushes",
-                   "parlay_wins", "parlay_losses"):
-            state["stats"][user].setdefault(k, 0)
+            state["stats"][user]={"straight_wins":0,"straight_losses":0,"straight_pushes":0,"parlay_wins":0,"parlay_losses":0}
+        for k in ("straight_wins","straight_losses","straight_pushes","parlay_wins","parlay_losses"):
+            state["stats"][user].setdefault(k,0)
 
-        if bet.get("bet_type") == "parlay":
-            print(f"\n  🎰  Grading parlay: {bet.get('description','')[:60]}")
-            result, leg_results = grade_parlay(bet, player_stats, game_results, sport)
-            bet["result"]      = result
-            bet["leg_results"] = leg_results
+        if bet.get("bet_type")=="parlay":
+            print(f"\n  🎰  Parlay: {bet.get('description','')[:60]}")
+            res,lr = grade_parlay(bet,ps,gr,sp); bet["result"]=res; bet["leg_results"]=lr
         else:
-            result = grade_single_bet(bet, player_stats, game_results, sport)
-            bet["result"] = result
+            res = grade_single_bet(bet,ps,gr,sp); bet["result"]=res
+        bet["graded_date"]=today
 
-        bet["graded_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-        if bet.get("bet_type") == "parlay":
-            if result == "win":    state["stats"][user]["parlay_wins"] += 1
-            elif result == "loss": state["stats"][user]["parlay_losses"] += 1
+        if bet.get("bet_type")=="parlay":
+            if res=="win": state["stats"][user]["parlay_wins"]+=1
+            elif res=="loss": state["stats"][user]["parlay_losses"]+=1
         else:
-            if result == "win":    state["stats"][user]["straight_wins"] += 1
-            elif result == "loss": state["stats"][user]["straight_losses"] += 1
-            elif result == "push": state["stats"][user]["straight_pushes"] += 1
+            if res=="win": state["stats"][user]["straight_wins"]+=1
+            elif res=="loss": state["stats"][user]["straight_losses"]+=1
+            elif res=="push": state["stats"][user]["straight_pushes"]+=1
 
-        icon = RESULT_ICON.get(result, "❓")
-        print(f"  {icon}  {bet.get('description','')[:60]}  →  {result}")
-        all_graded.append(bet)
-        dates_graded.add((date_str, sport))
-        time.sleep(0.2)
+        print(f"  {RESULT_ICON.get(res,'❓')}  {bet.get('description','')[:60]} → {res}")
+        all_graded.append(bet); dates_graded.add((ds,sp)); time.sleep(0.2)
 
-    # Move graded bets
-    graded_ids = {b["id"] for b in all_graded}
-    state["pending_bets"] = [
-        b for b in state["pending_bets"] if b["id"] not in graded_ids
-    ]
-    state["graded_bets"].extend(all_graded)
-    save_state(state)
+    gids = {b["id"] for b in all_graded}
+    state["pending_bets"]=[b for b in state["pending_bets"] if b["id"] not in gids]
+    state["graded_bets"].extend(all_graded); save_state(state)
 
-    # Send daily results per (date, sport)
-    for date_str, sport in sorted(dates_graded):
-        day_graded = [b for b in all_graded
-                      if b["date"] == date_str and b.get("sport", "nba") == sport]
-        results_msg = format_daily_results(day_graded, date_str, sport)
-        if results_msg:
-            send_telegram(results_msg)
-            print(f"  📨  Daily results sent for {sport.upper()} {date_str}")
-            time.sleep(1)
+    for ds,sp in sorted(dates_graded):
+        dg=[b for b in all_graded if b["date"]==ds and b.get("sport","nba")==sp]
+        msg = format_daily_results(dg, ds, sp)
+        if msg: send_telegram(msg); print(f"  📨  Results for {sp.upper()} {ds}"); time.sleep(1)
 
-    # Overall stats
-    stats_msg = format_overall_stats(
-        state["stats"], state.get("tracking_start", today_str)
-    )
-    if stats_msg:
-        send_telegram(stats_msg)
-        print("  📨  Overall stats sent")
-
-    print(f"\n✅  Grader done — {len(all_graded)} bets graded")
-
+    msg = format_overall_stats(state["stats"], state.get("tracking_start",today))
+    if msg: send_telegram(msg); print("  📨  Overall stats sent")
+    print(f"\n✅  Grader v{VERSION} done — {len(all_graded)} bets graded")
 
 if __name__ == "__main__":
     main()
