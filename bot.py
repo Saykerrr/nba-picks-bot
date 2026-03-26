@@ -608,21 +608,24 @@ Post: {post_title} | User: u/{username} | Date: {date_str} | Sport: {sport_label
 ---
 
 Return a JSON array. Each object must have:
-- "description": clear label e.g. "Player Over 12.5 STAT" or "Parlay 1: Leg1 + Leg2"
+- "description": MUST be a complete bet like "Dejounte Murray Over 11.5 RA" or "Parlay 1: Murray O11.5 RA + Booker O5.5 AST"
 - "player": full name or null (null for parlays)
 - "team": abbreviation or null
 - "opponent": abbreviation or null
 - "bet_type": "player_prop", "parlay", "spread", "moneyline", "total", or "other"
 {stat_guide}
-- "line": numeric or null (null for parlays)
-- "direction": "over","under" or null (null for parlays)
+- "line": numeric value — REQUIRED for player_prop (never null)
+- "direction": "over" or "under" — REQUIRED for player_prop (never null)
 - "confidence": "lean","like","play","strong","fade" or null
 
-IMPORTANT:
-- Include ALL individual plays listed
-- Include ALL parlays as separate entries
-- For parlays, use " + " between legs in the "description" field
-- Do NOT skip any bets
+CRITICAL RULES:
+- Every player_prop MUST have player + stat + line + direction. If ANY of these is missing, DO NOT include that bet.
+- The description must always include the full bet: "Player Over/Under Line Stat" — never just "Player Stat" without a line.
+- For parlays, EVERY leg in the description must be complete: "Player O/U Line Stat + Player O/U Line Stat"
+- If a parlay leg references a previous individual pick (like "Murray RA" referring to a pick listed above), expand it to the full bet with the actual line (e.g., "Dejounte Murray O11.5 RA").
+- Include ALL individual plays and ALL parlays as separate entries
+- Use " + " between legs in parlay descriptions
+- Do NOT create duplicate entries — if a bet appears as an individual play AND inside a parlay, include BOTH but each only once
 - Return [] only if truly no bets exist
 - No markdown, no explanation, just valid JSON array"""
 
@@ -645,7 +648,37 @@ IMPORTANT:
             raw = (resp.json()["content"][0]["text"].strip()
                    .replace("```json", "").replace("```", "").strip())
             bets = json.loads(raw)
-            return bets if isinstance(bets, list) else []
+            if not isinstance(bets, list):
+                return []
+            # ── Post-parse validation: reject incomplete bets ──
+            valid = []
+            for bet in bets:
+                bt = bet.get("bet_type", "other")
+                if bt == "player_prop":
+                    # Must have player + stat + line + direction
+                    if not bet.get("player"):
+                        print(f"    ⚠️  Rejected: no player — {bet.get('description','')[:50]}")
+                        continue
+                    if bet.get("line") is None:
+                        print(f"    ⚠️  Rejected: no line — {bet.get('description','')[:50]}")
+                        continue
+                    if not bet.get("direction"):
+                        print(f"    ⚠️  Rejected: no direction — {bet.get('description','')[:50]}")
+                        continue
+                    if not bet.get("stat"):
+                        print(f"    ⚠️  Rejected: no stat — {bet.get('description','')[:50]}")
+                        continue
+                elif bt == "parlay":
+                    # Parlay description must contain " + " (multiple legs)
+                    desc = bet.get("description", "")
+                    if " + " not in desc and "+" not in desc:
+                        print(f"    ⚠️  Rejected: parlay without legs — {desc[:50]}")
+                        continue
+                valid.append(bet)
+            dropped = len(bets) - len(valid)
+            if dropped:
+                print(f"    🗑️  Dropped {dropped} malformed bet(s)")
+            return valid
     except Exception as e:
         print(f"  ⚠️  Claude parse error: {e}", file=sys.stderr)
     return []

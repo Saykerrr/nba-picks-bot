@@ -601,16 +601,22 @@ def grade_parlay(bet, player_stats, game_results, sport="nba"):
         leg_results.append({"description": leg["description"], "result": result})
         print(f"      Leg: {leg['description'][:50]} → {result}")
 
-    results_set = {r["result"] for r in leg_results}
-    if "loss" in results_set:
+    # ── Parlay grading logic ──
+    # DNP legs are VOIDED (standard sportsbook behavior) — they don't count.
+    # The parlay is graded on the remaining active legs only.
+    active = [r for r in leg_results if r["result"] not in ("dnp",)]
+    results_set = {r["result"] for r in active} if active else set()
+
+    if not active:
+        # All legs DNP → entire parlay is void
+        overall = "dnp"
+    elif "loss" in results_set:
         overall = "loss"
     elif "unknown" in results_set:
         overall = "unknown"
-    elif all(r["result"] in ("win", "push") for r in leg_results):
-        non_push = [r for r in leg_results if r["result"] != "push"]
+    elif all(r["result"] in ("win", "push") for r in active):
+        non_push = [r for r in active if r["result"] != "push"]
         overall  = "win" if non_push else "push"
-    elif any(r["result"] == "dnp" for r in leg_results):
-        overall = "dnp"
     else:
         overall = "unknown"
 
@@ -618,6 +624,15 @@ def grade_parlay(bet, player_stats, game_results, sport="nba"):
 
 
 # ── Message Formatting ────────────────────────────────────────────────────────
+def format_date_display(date_str):
+    """Convert "2026-03-24" → "24/03/2026"."""
+    try:
+        parts = date_str.split("-")
+        return f"{parts[2]}/{parts[1]}/{parts[0]}"
+    except (IndexError, AttributeError):
+        return date_str
+
+
 def format_daily_results(graded, date_str, sport=None):
     if not graded:
         return None
@@ -626,10 +641,14 @@ def format_daily_results(graded, date_str, sport=None):
     for bet in graded:
         by_user.setdefault(bet["user"], []).append(bet)
 
+    date_display = format_date_display(date_str)
     sport_emoji = SPORT_EMOJI.get(sport, "📊")
     sport_label = (sport or "").upper()
-    header = f"{sport_emoji} <b>{sport_label} Bet Results — {date_str}</b>" if sport_label else f"📊 <b>Bet Results — {date_str}</b>"
-    lines = [header, "━" * 32]
+    if sport_label:
+        header = f"{sport_emoji} <b>{sport_label} Bet Results — {date_display}</b>"
+    else:
+        header = f"📊 <b>Bet Results — {date_display}</b>"
+    lines = [header, "━" * 30]
 
     for user, bets in by_user.items():
         straights = [b for b in bets if b.get("bet_type") != "parlay"]
@@ -671,9 +690,9 @@ def format_daily_results(graded, date_str, sport=None):
                 lines.append(f"\n  {overall_icon} <b>{label}</b>")
                 for leg in bet.get("leg_results", []):
                     leg_icon = RESULT_ICON.get(leg["result"], "❓")
-                    lines.append(
-                        f"      {leg_icon} {escape_html(leg['description'])}"
-                    )
+                    leg_desc = escape_html(leg['description'])
+                    dnp_tag = "  <i>(void — DNP)</i>" if leg["result"] == "dnp" else ""
+                    lines.append(f"      {leg_icon} {leg_desc}{dnp_tag}")
 
     return "\n".join(lines)
 
@@ -682,9 +701,11 @@ def format_overall_stats(stats, start_date):
     if not stats:
         return None
 
+    start_display = format_date_display(start_date)
+
     lines = [
-        f"📈 <b>Overall Record</b>  <i>(since {start_date})</i>",
-        "━" * 32,
+        f"📈 <b>Overall Record</b>  <i>(since {start_display})</i>",
+        "━" * 30,
     ]
 
     for user, rec in stats.items():

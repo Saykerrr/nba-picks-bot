@@ -1,14 +1,6 @@
 """
-ONE-TIME CATCHUP SCRIPT — Run this once to:
-  1. Move all graded_bets back to pending_bets (strip results)
-  2. Add "sport" field to old bets that don't have one (default: "nba")
-  3. Reset all user stats to zero
-  4. Save state.json
-
-After this, grader.py re-grades everything with:
-  - Fixed ESPN "3PT" parser
-  - Multi-sport support
-  - Correct stat parsing
+CATCHUP SCRIPT — Moves all graded_bets back to pending_bets and resets stats.
+Safe to run multiple times.  After running, grader.py re-grades everything.
 """
 
 import json
@@ -34,8 +26,7 @@ def main():
     pending = state.get("pending_bets", [])
     stats   = state.get("stats", {})
 
-    print(f"  📋  Found {len(graded)} graded bets to move back to pending")
-    print(f"  📋  Found {len(pending)} existing pending bets")
+    print(f"  📋  Graded: {len(graded)}  |  Pending: {len(pending)}")
 
     # ── Step 1: Move all graded bets back to pending ──
     moved = 0
@@ -46,13 +37,11 @@ def main():
         if bid in existing_ids:
             continue
 
-        # Strip grading results
         bet.pop("result", None)
         bet.pop("leg_results", None)
         bet.pop("graded_date", None)
         bet["result"] = None
 
-        # Add sport field if missing (all old bets are NBA)
         if "sport" not in bet:
             bet["sport"] = "nba"
 
@@ -62,8 +51,12 @@ def main():
 
     print(f"  ✅  Moved {moved} bets back to pending")
 
-    # ── Step 2: Add sport field to any pending bets missing it ──
+    # ── Step 2: Strip any leftover results from pending bets ──
     for bet in pending:
+        if bet.get("result") is not None:
+            bet["result"] = None
+            bet.pop("leg_results", None)
+            bet.pop("graded_date", None)
         if "sport" not in bet:
             bet["sport"] = "nba"
 
@@ -74,21 +67,18 @@ def main():
             "straight_pushes": 0,
             "parlay_wins": 0, "parlay_losses": 0,
         }
-    print(f"  ✅  Reset stats to zero for {len(stats)} user(s)")
+    print(f"  ✅  Reset stats for {len(stats)} user(s)")
 
     # ── Step 4: Clear graded_bets ──
     state["graded_bets"]  = []
     state["pending_bets"] = pending
     state["stats"]        = stats
 
-    # ── Step 5: Save ──
     with open(STATE_FILE, "w") as f:
         json.dump(state, f, indent=2)
 
     dates = sorted(set(b["date"] for b in pending))
-    print(f"\n✅  Catchup done — {len(pending)} pending bets ready for re-grading")
-    print(f"    Dates: {', '.join(dates)}")
-    print(f"    Now run grader.py to re-grade everything.")
+    print(f"\n✅  Done — {len(pending)} pending bets | Dates: {', '.join(dates)}")
 
 
 if __name__ == "__main__":
