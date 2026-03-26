@@ -963,7 +963,7 @@
       "direction": null,
       "confidence": null,
       "sport": "nba",
-      "result": "win",
+      "result": "unknown",
       "graded_date": "2026-03-26"
     },
     {
@@ -1189,7 +1189,7 @@
       "parlay_losses": 3
     },
     "Novel_Calendar5168": {
-      "straight_wins": 15,
+      "straight_wins": 14,
       "straight_losses": 5,
       "straight_pushes": 0,
       "parlay_wins": 2,
