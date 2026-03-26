@@ -1,7 +1,7 @@
 name: NBA Grader
 on:
   schedule:
-    - cron: "0 6 * * *"   # 6 AM UTC = 8 AM Beirut (UTC+2) / 9 AM (UTC+3 summer)
+    - cron: "0 6 * * *"
   workflow_dispatch:
 
 jobs:
