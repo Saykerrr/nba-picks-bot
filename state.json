@@ -36,6 +36,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -54,6 +55,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -72,6 +74,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -90,6 +93,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -108,6 +112,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -126,6 +131,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -144,6 +150,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "dnp",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -162,6 +169,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -180,6 +188,7 @@
       "direction": "under",
       "confidence": "lean",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -198,6 +207,7 @@
       "direction": null,
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Amen Thompson O12.5 RA",
@@ -230,6 +240,7 @@
       "direction": null,
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Josh Giddey O27.5 PA",
@@ -262,6 +273,7 @@
       "direction": null,
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Jalen Johnson O1.5 3s",
@@ -294,6 +306,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -312,6 +325,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -330,6 +344,7 @@
       "direction": "over",
       "confidence": "lean",
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -348,6 +363,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -366,6 +382,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -384,6 +401,7 @@
       "direction": "over",
       "confidence": "lean",
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -402,6 +420,7 @@
       "direction": null,
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Tyler Herro O9.5 RA",
@@ -430,6 +449,7 @@
       "direction": null,
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Taurean Prince O1.5 3s",
@@ -462,6 +482,7 @@
       "direction": null,
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Jared McCain O11.5 PTS",
@@ -494,6 +515,7 @@
       "direction": null,
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Tyler Herro O2.5 3s",
@@ -526,6 +548,7 @@
       "direction": null,
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Darius Garland O28.5 PA",
@@ -558,6 +581,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -576,6 +600,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -594,6 +619,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -612,6 +638,7 @@
       "direction": "over",
       "confidence": "like",
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -630,6 +657,7 @@
       "direction": "over",
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -648,6 +676,7 @@
       "direction": "over",
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -666,6 +695,7 @@
       "direction": "over",
       "confidence": null,
       "result": "dnp",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -684,6 +714,7 @@
       "direction": null,
       "confidence": null,
       "result": "dnp",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Alexander-Walker Over 20.5 PA",
@@ -716,6 +747,7 @@
       "direction": null,
       "confidence": null,
       "result": "dnp",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Herro (Parlay - fell 2 pts short)",
@@ -740,6 +772,7 @@
       "direction": "over",
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -758,6 +791,7 @@
       "direction": "over",
       "confidence": null,
       "result": "loss",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -775,7 +809,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "win",
+      "result": "unknown",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -794,6 +829,7 @@
       "direction": null,
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -812,6 +848,7 @@
       "direction": null,
       "confidence": null,
       "result": "unknown",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -830,6 +867,7 @@
       "direction": "over",
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -848,6 +886,7 @@
       "direction": "over",
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -866,6 +905,7 @@
       "direction": null,
       "confidence": null,
       "result": "unknown",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Tristan da Silva O11.5 PTS",
@@ -898,6 +938,7 @@
       "direction": "over",
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -916,6 +957,7 @@
       "direction": "over",
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -934,6 +976,7 @@
       "direction": "over",
       "confidence": null,
       "result": "win",
+      "sport": "nba",
       "graded_date": "2026-03-26"
     },
     {
@@ -952,6 +995,7 @@
       "direction": null,
       "confidence": null,
       "result": "unknown",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "DeMar DeRozan O4.5 AST",
@@ -988,6 +1032,7 @@
       "direction": null,
       "confidence": null,
       "result": "unknown",
+      "sport": "nba",
       "leg_results": [
         {
           "description": "Murray RA",
@@ -1010,7 +1055,7 @@
       "parlay_losses": 3
     },
     "Novel_Calendar5168": {
-      "straight_wins": 16,
+      "straight_wins": 15,
       "straight_losses": 5,
       "straight_pushes": 0,
       "parlay_wins": 1,
