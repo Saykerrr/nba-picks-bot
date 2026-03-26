@@ -1,6 +1,23 @@
 {
-  "seen_comments": {},
-  "sent_per_post": {},
+  "seen_comments": {
+    "ock55fw": {
+      "hash": "02a2a5111d7bcb60927ab75f97122a60",
+      "date": "2026-03-26"
+    },
+    "ocinyg9": {
+      "hash": "f9178bd298f6caf7a2d8cc25c6aafd49",
+      "date": "2026-03-25"
+    },
+    "ocborgy": {
+      "hash": "c4f231279418e938a6dea4f6bd8924fb",
+      "date": "2026-03-24"
+    }
+  },
+  "sent_per_post": {
+    "taraujo:1s3xmya": true,
+    "novel_calendar5168:1s2zel6": true,
+    "novel_calendar5168:1s22jvi": true
+  },
   "tracking_start": "2026-03-23",
   "graded_bets": [
     {
@@ -19,7 +36,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_1",
@@ -37,7 +54,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_2",
@@ -55,7 +72,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_3",
@@ -73,7 +90,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_4",
@@ -91,7 +108,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_5",
@@ -109,7 +126,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_6",
@@ -127,7 +144,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "dnp",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_7",
@@ -145,7 +162,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_8",
@@ -163,7 +180,7 @@
       "direction": "under",
       "confidence": "lean",
       "result": "win",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_p1",
@@ -195,7 +212,7 @@
           "result": "win"
         }
       ],
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_p2",
@@ -227,7 +244,7 @@
           "result": "win"
         }
       ],
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_t1_p3",
@@ -256,10 +273,10 @@
         },
         {
           "description": "SGA U1.5 3s",
-          "result": "dnp"
+          "result": "win"
         }
       ],
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_0",
@@ -277,7 +294,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_1",
@@ -295,7 +312,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_2",
@@ -313,7 +330,7 @@
       "direction": "over",
       "confidence": "lean",
       "result": "loss",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_3",
@@ -331,7 +348,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_4",
@@ -349,7 +366,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_5",
@@ -367,7 +384,7 @@
       "direction": "over",
       "confidence": "lean",
       "result": "loss",
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_p1",
@@ -395,7 +412,7 @@
           "result": "loss"
         }
       ],
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_p2",
@@ -427,7 +444,7 @@
           "result": "win"
         }
       ],
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_p3",
@@ -459,7 +476,7 @@
           "result": "win"
         }
       ],
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_p4",
@@ -488,10 +505,10 @@
         },
         {
           "description": "Klay Thompson O2.5 3s",
-          "result": "loss"
+          "result": "win"
         }
       ],
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "manual_n1_p5",
@@ -523,7 +540,7 @@
           "result": "win"
         }
       ],
-      "graded_date": "2026-03-24"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "ocah17l_0",
@@ -541,7 +558,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
-      "graded_date": "2026-03-25"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "ocah17l_1",
@@ -559,7 +576,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "loss",
-      "graded_date": "2026-03-25"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "ocah17l_2",
@@ -577,7 +594,7 @@
       "direction": "over",
       "confidence": "play",
       "result": "win",
-      "graded_date": "2026-03-25"
+      "graded_date": "2026-03-26"
     },
     {
       "id": "ocah17l_3",
@@ -595,7 +612,393 @@
       "direction": "over",
       "confidence": "like",
       "result": "win",
-      "graded_date": "2026-03-25"
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocinyg9_0",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-25",
+      "post_title": "NBA Props Daily - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zel6/nba_props_daily_32526_wednesday/",
+      "description": "Alexander-Walker Over 20.5 PA",
+      "player": "Nickeil Alexander-Walker",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "PA",
+      "line": 20.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocinyg9_1",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-25",
+      "post_title": "NBA Props Daily - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zel6/nba_props_daily_32526_wednesday/",
+      "description": "Naji Marshall Over 20.5 PA",
+      "player": "Naji Marshall",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "PA",
+      "line": 20.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocinyg9_2",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-25",
+      "post_title": "NBA Props Daily - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zel6/nba_props_daily_32526_wednesday/",
+      "description": "Ayo Dosunmu Over 8.5 RA",
+      "player": "Ayo Dosunmu",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "RA",
+      "line": 8.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "dnp",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocinyg9_3",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-25",
+      "post_title": "NBA Props Daily - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zel6/nba_props_daily_32526_wednesday/",
+      "description": "Parlay 1: Alexander-Walker Over 20.5 PA + Naji Marshall Over 20.5 PA + Ayo Dosunmu Over 8.5 RA",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "dnp",
+      "leg_results": [
+        {
+          "description": "Alexander-Walker Over 20.5 PA",
+          "result": "win"
+        },
+        {
+          "description": "Naji Marshall Over 20.5 PA",
+          "result": "win"
+        },
+        {
+          "description": "Ayo Dosunmu Over 8.5 RA",
+          "result": "dnp"
+        }
+      ],
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocinyg9_4",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-25",
+      "post_title": "NBA Props Daily - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zel6/nba_props_daily_32526_wednesday/",
+      "description": "Herro (Parlay - fell 2 pts short)",
+      "player": "Tyler Herro",
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "dnp",
+      "leg_results": [
+        {
+          "description": "Herro (Parlay - fell 2 pts short)",
+          "result": "dnp"
+        }
+      ],
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocinyg9_5",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-25",
+      "post_title": "NBA Props Daily - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zel6/nba_props_daily_32526_wednesday/",
+      "description": "Garland Over 3PM",
+      "player": "Collin Garland",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "3PM",
+      "line": null,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocinyg9_6",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-25",
+      "post_title": "NBA Props Daily - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zel6/nba_props_daily_32526_wednesday/",
+      "description": "Melton Over 3PM",
+      "player": "De'Anthony Melton",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "3PM",
+      "line": null,
+      "direction": "over",
+      "confidence": null,
+      "result": "loss",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_0",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Murray RA",
+      "player": "Murray",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "RA",
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_1",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Paolo Banchero PTS",
+      "player": "Paolo Banchero",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_2",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Murphy PTS",
+      "player": "Murphy",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "unknown",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_3",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Tristan da Silva Over 11.5 PTS",
+      "player": "Tristan da Silva",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 11.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_4",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "KAT Over 11.5 REB",
+      "player": "KAT",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "REB",
+      "line": 11.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_5",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Parlay 4: Tristan da Silva O11.5 PTS + KAT O11.5 REB + Gillespie",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "unknown",
+      "leg_results": [
+        {
+          "description": "Tristan da Silva O11.5 PTS",
+          "result": "win"
+        },
+        {
+          "description": "KAT O11.5 REB",
+          "result": "win"
+        },
+        {
+          "description": "Gillespie",
+          "result": "unknown"
+        }
+      ],
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_6",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "DeMar DeRozan Over 4.5 AST",
+      "player": "DeMar DeRozan",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "AST",
+      "line": 4.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_7",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Jalen Brunson Over 6.5 AST",
+      "player": "Jalen Brunson",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "AST",
+      "line": 6.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_8",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Paolo Banchero Over 22.5 PTS",
+      "player": "Paolo Banchero",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 22.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_9",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Degen Parlay: DeMar DeRozan O4.5 AST + Jalen Brunson O6.5 AST + Paolo Banchero O22.5 PTS + Jokic",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "unknown",
+      "leg_results": [
+        {
+          "description": "DeMar DeRozan O4.5 AST",
+          "result": "win"
+        },
+        {
+          "description": "Jalen Brunson O6.5 AST",
+          "result": "win"
+        },
+        {
+          "description": "Paolo Banchero O22.5 PTS",
+          "result": "win"
+        },
+        {
+          "description": "Jokic",
+          "result": "unknown"
+        }
+      ],
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocborgy_10",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-24",
+      "post_title": "NBA Props Daily - 3/24/26 (Tuesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s22jvi/nba_props_daily_32426_tuesday/",
+      "description": "Parlay 2: Murray RA + Booker",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "unknown",
+      "leg_results": [
+        {
+          "description": "Murray RA",
+          "result": "unknown"
+        },
+        {
+          "description": "Booker",
+          "result": "unknown"
+        }
+      ],
+      "graded_date": "2026-03-26"
     }
   ],
   "stats": {
@@ -607,8 +1010,8 @@
       "parlay_losses": 3
     },
     "Novel_Calendar5168": {
-      "straight_wins": 6,
-      "straight_losses": 4,
+      "straight_wins": 16,
+      "straight_losses": 5,
       "straight_pushes": 0,
       "parlay_wins": 1,
       "parlay_losses": 4
