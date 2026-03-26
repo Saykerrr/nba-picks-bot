@@ -41,6 +41,120 @@
   "tracking_start": "2026-03-23",
   "graded_bets": [
     {
+      "id": "oced4jz_0",
+      "user": "taraujo",
+      "date": "2026-03-25",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
+      "description": "Cody Bellinger O 1.5 Hits + Runs + RBIs",
+      "player": "Cody Bellinger",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": null,
+      "line": 1.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "oced4jz_1",
+      "user": "taraujo",
+      "date": "2026-03-25",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
+      "description": "Logan Webb 5+ Strikeouts",
+      "player": "Logan Webb",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "K",
+      "line": 5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "oced4jz_2",
+      "user": "taraujo",
+      "date": "2026-03-25",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
+      "description": "Rafael Devers O 1.5 Hits + Runs + RBIs",
+      "player": "Rafael Devers",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": null,
+      "line": 1.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "win",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "oced4jz_3",
+      "user": "taraujo",
+      "date": "2026-03-25",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
+      "description": "Aaron Judge O 1.5 Total Bases",
+      "player": "Aaron Judge",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "TB",
+      "line": 1.5,
+      "direction": "over",
+      "confidence": null,
+      "result": "loss",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "oced4jz_4",
+      "user": "taraujo",
+      "date": "2026-03-25",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
+      "description": "Ben Rice HR",
+      "player": "Ben Rice",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "HR",
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "loss",
+      "graded_date": "2026-03-26"
+    },
+    {
+      "id": "oced4jz_5",
+      "user": "taraujo",
+      "date": "2026-03-25",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
+      "description": "Rafael Devers HR",
+      "player": "Rafael Devers",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "HR",
+      "line": null,
+      "direction": null,
+      "confidence": null,
+      "result": "loss",
+      "graded_date": "2026-03-26"
+    },
+    {
       "id": "manual_t1_0",
       "user": "taraujo",
       "date": "2026-03-23",
@@ -55,8 +169,8 @@
       "line": 12.5,
       "direction": "over",
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -74,8 +188,8 @@
       "line": 13.5,
       "direction": "over",
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -93,8 +207,8 @@
       "line": 12.5,
       "direction": "over",
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -112,8 +226,8 @@
       "line": 27.5,
       "direction": "over",
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -131,8 +245,8 @@
       "line": 40.5,
       "direction": "over",
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -150,8 +264,8 @@
       "line": 24.5,
       "direction": "over",
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -169,8 +283,8 @@
       "line": 1.5,
       "direction": "over",
       "confidence": "play",
-      "result": "dnp",
       "sport": "nba",
+      "result": "dnp",
       "graded_date": "2026-03-26"
     },
     {
@@ -188,8 +302,8 @@
       "line": 2.5,
       "direction": "over",
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -207,8 +321,8 @@
       "line": 1.5,
       "direction": "under",
       "confidence": "lean",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -226,8 +340,8 @@
       "line": null,
       "direction": null,
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "leg_results": [
         {
           "description": "Amen Thompson O12.5 RA",
@@ -259,8 +373,8 @@
       "line": null,
       "direction": null,
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "leg_results": [
         {
           "description": "Josh Giddey O27.5 PA",
@@ -292,8 +406,8 @@
       "line": null,
       "direction": null,
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "leg_results": [
         {
           "description": "Jalen Johnson O1.5 3s",
@@ -325,8 +439,8 @@
       "line": 15.5,
       "direction": "over",
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -344,8 +458,8 @@
       "line": 12.5,
       "direction": "over",
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -363,8 +477,8 @@
       "line": 9.5,
       "direction": "over",
       "confidence": "lean",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -382,8 +496,8 @@
       "line": 12.5,
       "direction": "over",
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -401,8 +515,8 @@
       "line": 25.5,
       "direction": "over",
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -420,8 +534,8 @@
       "line": 1.5,
       "direction": "over",
       "confidence": "lean",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -439,8 +553,8 @@
       "line": null,
       "direction": null,
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "leg_results": [
         {
           "description": "Tyler Herro O9.5 RA",
@@ -468,8 +582,8 @@
       "line": null,
       "direction": null,
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "leg_results": [
         {
           "description": "Taurean Prince O1.5 3s",
@@ -501,8 +615,8 @@
       "line": null,
       "direction": null,
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "leg_results": [
         {
           "description": "Jared McCain O11.5 PTS",
@@ -534,8 +648,8 @@
       "line": null,
       "direction": null,
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "leg_results": [
         {
           "description": "Tyler Herro O2.5 3s",
@@ -567,8 +681,8 @@
       "line": null,
       "direction": null,
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "leg_results": [
         {
           "description": "Darius Garland O28.5 PA",
@@ -600,8 +714,8 @@
       "line": 11.5,
       "direction": "over",
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -619,8 +733,8 @@
       "line": 20.0,
       "direction": "over",
       "confidence": "play",
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -638,8 +752,8 @@
       "line": 23.5,
       "direction": "over",
       "confidence": "play",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -657,8 +771,8 @@
       "line": 11.5,
       "direction": "over",
       "confidence": "like",
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -676,8 +790,8 @@
       "line": 20.5,
       "direction": "over",
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -695,8 +809,8 @@
       "line": 20.5,
       "direction": "over",
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -714,8 +828,8 @@
       "line": 8.5,
       "direction": "over",
       "confidence": null,
-      "result": "dnp",
       "sport": "nba",
+      "result": "dnp",
       "graded_date": "2026-03-26"
     },
     {
@@ -733,8 +847,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "dnp",
       "sport": "nba",
+      "result": "win",
       "leg_results": [
         {
           "description": "Alexander-Walker Over 20.5 PA",
@@ -766,8 +880,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "dnp",
       "sport": "nba",
+      "result": "dnp",
       "leg_results": [
         {
           "description": "Herro (Parlay - fell 2 pts short)",
@@ -791,8 +905,8 @@
       "line": null,
       "direction": "over",
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -810,8 +924,8 @@
       "line": null,
       "direction": "over",
       "confidence": null,
-      "result": "loss",
       "sport": "nba",
+      "result": "loss",
       "graded_date": "2026-03-26"
     },
     {
@@ -829,8 +943,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "unknown",
       "sport": "nba",
+      "result": "unknown",
       "graded_date": "2026-03-26"
     },
     {
@@ -848,8 +962,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -867,8 +981,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "unknown",
       "sport": "nba",
+      "result": "unknown",
       "graded_date": "2026-03-26"
     },
     {
@@ -886,8 +1000,8 @@
       "line": 11.5,
       "direction": "over",
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -905,8 +1019,8 @@
       "line": 11.5,
       "direction": "over",
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -924,8 +1038,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "unknown",
       "sport": "nba",
+      "result": "unknown",
       "leg_results": [
         {
           "description": "Tristan da Silva O11.5 PTS",
@@ -957,8 +1071,8 @@
       "line": 4.5,
       "direction": "over",
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -976,8 +1090,8 @@
       "line": 6.5,
       "direction": "over",
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -995,8 +1109,8 @@
       "line": 22.5,
       "direction": "over",
       "confidence": null,
-      "result": "win",
       "sport": "nba",
+      "result": "win",
       "graded_date": "2026-03-26"
     },
     {
@@ -1014,8 +1128,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "unknown",
       "sport": "nba",
+      "result": "unknown",
       "leg_results": [
         {
           "description": "DeMar DeRozan O4.5 AST",
@@ -1051,8 +1165,8 @@
       "line": null,
       "direction": null,
       "confidence": null,
-      "result": "unknown",
       "sport": "nba",
+      "result": "unknown",
       "leg_results": [
         {
           "description": "Murray RA",
@@ -1068,8 +1182,8 @@
   ],
   "stats": {
     "taraujo": {
-      "straight_wins": 4,
-      "straight_losses": 4,
+      "straight_wins": 7,
+      "straight_losses": 7,
       "straight_pushes": 0,
       "parlay_wins": 0,
       "parlay_losses": 3
@@ -1078,7 +1192,7 @@
       "straight_wins": 15,
       "straight_losses": 5,
       "straight_pushes": 0,
-      "parlay_wins": 1,
+      "parlay_wins": 2,
       "parlay_losses": 4
     }
   },
@@ -1458,114 +1572,6 @@
       "stat": "HR",
       "line": null,
       "direction": "over",
-      "confidence": null,
-      "result": null
-    },
-    {
-      "id": "oced4jz_0",
-      "user": "taraujo",
-      "date": "2026-03-25",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
-      "description": "Cody Bellinger O 1.5 Hits + Runs + RBIs",
-      "player": "Cody Bellinger",
-      "team": null,
-      "opponent": null,
-      "bet_type": "player_prop",
-      "stat": null,
-      "line": 1.5,
-      "direction": "over",
-      "confidence": null,
-      "result": null
-    },
-    {
-      "id": "oced4jz_1",
-      "user": "taraujo",
-      "date": "2026-03-25",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
-      "description": "Logan Webb 5+ Strikeouts",
-      "player": "Logan Webb",
-      "team": null,
-      "opponent": null,
-      "bet_type": "player_prop",
-      "stat": "K",
-      "line": 5,
-      "direction": "over",
-      "confidence": null,
-      "result": null
-    },
-    {
-      "id": "oced4jz_2",
-      "user": "taraujo",
-      "date": "2026-03-25",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
-      "description": "Rafael Devers O 1.5 Hits + Runs + RBIs",
-      "player": "Rafael Devers",
-      "team": null,
-      "opponent": null,
-      "bet_type": "player_prop",
-      "stat": null,
-      "line": 1.5,
-      "direction": "over",
-      "confidence": null,
-      "result": null
-    },
-    {
-      "id": "oced4jz_3",
-      "user": "taraujo",
-      "date": "2026-03-25",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
-      "description": "Aaron Judge O 1.5 Total Bases",
-      "player": "Aaron Judge",
-      "team": null,
-      "opponent": null,
-      "bet_type": "player_prop",
-      "stat": "TB",
-      "line": 1.5,
-      "direction": "over",
-      "confidence": null,
-      "result": null
-    },
-    {
-      "id": "oced4jz_4",
-      "user": "taraujo",
-      "date": "2026-03-25",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
-      "description": "Ben Rice HR",
-      "player": "Ben Rice",
-      "team": null,
-      "opponent": null,
-      "bet_type": "player_prop",
-      "stat": "HR",
-      "line": null,
-      "direction": null,
-      "confidence": null,
-      "result": null
-    },
-    {
-      "id": "oced4jz_5",
-      "user": "taraujo",
-      "date": "2026-03-25",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/25/26 (Wednesday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s2zr32/mlb_props_and_home_run_picks_32526_wednesday/",
-      "description": "Rafael Devers HR",
-      "player": "Rafael Devers",
-      "team": null,
-      "opponent": null,
-      "bet_type": "player_prop",
-      "stat": "HR",
-      "line": null,
-      "direction": null,
       "confidence": null,
       "result": null
     }
