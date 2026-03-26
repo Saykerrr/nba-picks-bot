@@ -1,6 +1,6 @@
 name: NBA Catchup (one-time)
 on:
-  workflow_dispatch:     # Manual trigger only — this is a one-time fix
+  workflow_dispatch:
 
 jobs:
   catchup:
@@ -22,32 +22,28 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Step 1: Reset state — move all graded bets back to pending, zero stats
-      - name: Run catchup (reset state)
+      - name: Wipe old data
         run: python catchup.py
 
-      # Step 2: Fetch any missed Reddit picks (March 24, 25, 26)
-      - name: Run bot (fetch missed picks)
+      - name: Fetch picks from Reddit
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
           ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
         run: python bot.py
 
-      # Step 3: Re-grade everything with the fixed ESPN 3PM parser
-      - name: Run grader (re-grade all)
+      - name: Grade all bets
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
           ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
         run: python grader.py
 
-      # Step 4: Save everything
       - name: Save state
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add state.json
-          git diff --staged --quiet || git commit -m "chore: catchup re-grade with fixed 3PM [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: nuclear catchup — fresh re-grade [skip ci]"
           git pull --rebase
           git push
