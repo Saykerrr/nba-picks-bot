@@ -1,600 +1,389 @@
-"""
-NBA/MLB/NCAABB Reddit Picks Bot  —  v4.0  (2026-03-26)
-Fetches comments from target users on r/sportsbook, formats with Claude,
-sends to Telegram, and stores bets for grading.
-"""
-
-import requests
-import json
-import os
-import hashlib
-import sys
-import time
-import re
+"""bot.py v5 — Reddit Picks Bot (2026-03-26)"""
+import requests, json, os, hashlib, sys, time, re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 
-VERSION = "4.0"
-
-# ── Config ────────────────────────────────────────────────────────────────────
+V = "5.0"
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID   = os.environ["TELEGRAM_CHAT_ID"]
 ANTHROPIC_API_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
+STATE_FILE = "state.json"
+LOOKBACK_DAYS = 5
+SUBREDDIT = "sportsbook"
+HDRS = {"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36","Accept":"*/*"}
+ATOM = "http://www.w3.org/2005/Atom"
 
-STATE_FILE     = "state.json"
-MAX_TG_CHARS   = 4000
-LOOKBACK_DAYS  = 5
-SUBREDDIT      = "sportsbook"
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "*/*",
-    "Accept-Language": "en-US,en;q=0.9",
+# ── Sports & Users ────────────────────────────────────────────────────────────
+SPORTS = {
+    "nba":    {"kw":["nba props","nba betting","nba picks","nba daily"],"emoji":"🏀","label":"NBA"},
+    "mlb":    {"kw":["mlb props","mlb betting","mlb picks","mlb daily","baseball betting"],"emoji":"⚾","label":"MLB"},
+    "ncaabb": {"kw":["ncaabb","ncaa basketball","college basketball","cbb betting","cbb picks",
+                     "cbb daily","march madness","ncaa bb","ncaab "],"emoji":"🏀","label":"NCAABB"},
 }
+USERS = {"taraujo":{"nba","mlb"},"novel_calendar5168":{"nba","mlb"},"wnba_prodigy":{"ncaabb"}}
 
-# ── Multi-sport configuration ────────────────────────────────────────────────
-SPORT_CONFIG = {
-    "nba": {
-        "keywords": ["nba props", "nba betting", "nba picks", "nba daily"],
-        "emoji": "🏀", "label": "NBA",
-    },
-    "mlb": {
-        "keywords": ["mlb props", "mlb betting", "mlb picks", "mlb daily", "baseball betting"],
-        "emoji": "⚾", "label": "MLB",
-    },
-    "ncaabb": {
-        "keywords": ["ncaabb", "ncaa basketball", "college basketball",
-                     "cbb betting", "cbb picks", "cbb props", "march madness", "ncaa bb"],
-        "emoji": "🏀", "label": "NCAABB",
-    },
-}
-
-TARGET_USERS = {
-    "taraujo":            {"nba", "mlb"},
-    "novel_calendar5168": {"nba", "mlb"},
-    "wnba_prodigy":       {"ncaabb"},
-}
-
-# Emojis stripped before hashing (so adding ✅❌ doesn't trigger re-send)
-RESULT_EMOJIS = re.compile(
-    r'[\u2705\u274C\u2714\uFE0F\u2611\u2612\u2B50\U0001F525\U0001F4B0\U0001F4C8'
-    r'\U0001F4C9\u2B06\u2B07\U0001F7E2\U0001F534\U0001F7E1\U0001F44D\U0001F44E'
-    r'\U0001F3C6\U0001F389\U0001F4A5\U0001F4AF]'
-)
-
+# Emojis that users add post-game — stripped before hashing
+POSTGAME_RE = re.compile(r'[\u2705\u274C\u2714\uFE0F\u2611\u2612\U0001F525\U0001F4B0\U0001F4C8\U0001F4C9\U0001F7E2\U0001F534\U0001F44D\U0001F44E\U0001F3C6\U0001F389\U0001F4AF]')
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-def extract_date_from_title(title):
-    m = re.search(r'(\d{1,2})/(\d{1,2})/(\d{2,4})', title)
-    if m:
-        month, day, year = int(m.group(1)), int(m.group(2)), int(m.group(3))
-        if year < 100:
-            year += 2000
-        try:
-            return f"{year:04d}-{month:02d}-{day:02d}"
-        except Exception:
-            pass
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-
 def detect_sport(title):
-    lower = title.lower()
-    for sport, cfg in SPORT_CONFIG.items():
-        if any(kw in lower for kw in cfg["keywords"]):
-            return sport
+    t = title.lower()
+    for s, c in SPORTS.items():
+        if any(k in t for k in c["kw"]): return s
     return None
 
+def date_from_title(title):
+    m = re.search(r'(\d{1,2})/(\d{1,2})/(\d{2,4})', title)
+    if m:
+        mo,d,y = int(m.group(1)),int(m.group(2)),int(m.group(3))
+        if y<100: y+=2000
+        return f"{y:04d}-{mo:02d}-{d:02d}"
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+def fmt_date(ds):
+    """2026-03-24 → 24/03/2026"""
+    try: p=ds.split("-"); return f"{p[2]}/{p[1]}/{p[0]}"
+    except: return ds
 
 def load_state():
     if os.path.exists(STATE_FILE):
-        with open(STATE_FILE) as f:
-            return json.load(f)
+        with open(STATE_FILE) as f: return json.load(f)
     return {}
 
+def save_state(st):
+    if "seen_comments" in st:
+        cut = (datetime.now(timezone.utc)-timedelta(days=7)).strftime("%Y-%m-%d")
+        st["seen_comments"] = {k:v for k,v in st["seen_comments"].items() if v.get("date","9")>=cut}
+    with open(STATE_FILE,"w") as f: json.dump(st,f,indent=2)
 
-def save_state(state):
-    if "seen_comments" in state:
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y-%m-%d")
-        state["seen_comments"] = {
-            k: v for k, v in state["seen_comments"].items()
-            if v.get("date", "9999") >= cutoff
-        }
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=2)
+def ensure_keys(st):
+    st.pop("sent_today",None)
+    for k,v in {"seen_comments":{},"sent_per_post":{},"pending_bets":[],"graded_bets":[],"stats":{}}.items():
+        if k not in st: st[k]=v
+    return st
 
+def body_hash(text):
+    c = POSTGAME_RE.sub("",text)
+    c = "\n".join(l.strip() for l in c.splitlines())
+    return hashlib.md5(c.encode()).hexdigest()
 
-def ensure_keys(state):
-    if "sent_today" in state:
-        state.pop("sent_today", None)
-    for k, v in {"seen_comments": {}, "sent_per_post": {},
-                 "pending_bets": [], "graded_bets": [], "stats": {}}.items():
-        if k not in state:
-            state[k] = v
-    return state
-
-
-def smart_body_hash(text):
-    cleaned = RESULT_EMOJIS.sub("", text)
-    cleaned = "\n".join(line.strip() for line in cleaned.splitlines())
-    return hashlib.md5(cleaned.encode()).hexdigest()
-
-
-def normalize_author(raw):
-    name = raw.strip()
-    for prefix in ("/u/", "u/"):
-        if name.startswith(prefix):
-            name = name[len(prefix):]
-    return name.lower()
-
+def norm_author(raw):
+    n = raw.strip()
+    for p in ("/u/","u/"):
+        if n.startswith(p): n=n[len(p):]
+    return n.lower()
 
 # ── RSS ───────────────────────────────────────────────────────────────────────
-ATOM_NS = "http://www.w3.org/2005/Atom"
-
-
 def fetch_rss(url, retries=3):
-    for attempt in range(retries):
+    for i in range(retries):
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=20)
-            if resp.status_code == 429:
-                time.sleep(30)
-                continue
-            if resp.status_code in (403, 404):
-                return None
-            resp.raise_for_status()
-            return resp.content
+            r = requests.get(url, headers=HDRS, timeout=20)
+            if r.status_code==429: time.sleep(30); continue
+            if r.status_code in (403,404): return None
+            r.raise_for_status(); return r.content
         except Exception as e:
-            print(f"  ⚠️  Fetch error attempt {attempt+1}: {e}", file=sys.stderr)
-            time.sleep(3)
+            print(f"  ⚠️ RSS err {i+1}: {e}",file=sys.stderr); time.sleep(3)
     return None
 
-
 def parse_atom(content):
-    if not content:
-        return []
+    if not content: return []
     try:
         root = ET.fromstring(content)
-        entries = []
-        for entry in root.findall(f"{{{ATOM_NS}}}entry"):
-            link_el    = entry.find(f"{{{ATOM_NS}}}link")
-            author_el  = entry.find(f"{{{ATOM_NS}}}author/{{{ATOM_NS}}}name")
-            content_el = entry.find(f"{{{ATOM_NS}}}content")
-            entries.append({
-                "title":   entry.findtext(f"{{{ATOM_NS}}}title", ""),
-                "link":    link_el.attrib.get("href", "") if link_el is not None else "",
-                "updated": entry.findtext(f"{{{ATOM_NS}}}updated", ""),
-                "id":      entry.findtext(f"{{{ATOM_NS}}}id", ""),
-                "author":  author_el.text.strip() if author_el is not None else "",
-                "content": content_el.text or "" if content_el is not None else "",
-            })
-        return entries
-    except ET.ParseError as e:
-        print(f"  ⚠️  RSS parse error: {e}", file=sys.stderr)
-        return []
+        out = []
+        for e in root.findall(f"{{{ATOM}}}entry"):
+            lk = e.find(f"{{{ATOM}}}link")
+            au = e.find(f"{{{ATOM}}}author/{{{ATOM}}}name")
+            co = e.find(f"{{{ATOM}}}content")
+            out.append({"title":e.findtext(f"{{{ATOM}}}title",""),
+                "link":lk.attrib.get("href","") if lk is not None else "",
+                "updated":e.findtext(f"{{{ATOM}}}updated",""),
+                "id":e.findtext(f"{{{ATOM}}}id",""),
+                "author":au.text.strip() if au is not None else "",
+                "content":co.text or "" if co is not None else ""})
+        return out
+    except ET.ParseError: return []
 
-
-def extract_post_id(url):
-    parts = url.rstrip("/").split("/")
-    if "comments" in parts:
-        idx = parts.index("comments")
-        if idx + 1 < len(parts):
-            return parts[idx + 1]
+def post_id_from_url(url):
+    p = url.rstrip("/").split("/")
+    if "comments" in p:
+        i = p.index("comments")
+        if i+1<len(p): return p[i+1]
     return ""
 
+def comment_id(eid):
+    m = re.search(r't1_([a-z0-9]+)',eid)
+    return m.group(1) if m else eid.rstrip("/").split("/")[-1]
 
-def extract_comment_id(entry_id):
-    match = re.search(r't1_([a-z0-9]+)', entry_id)
-    return match.group(1) if match else entry_id.rstrip("/").split("/")[-1]
-
-
-def is_recent(updated_str):
-    if not updated_str:
-        return False
+def is_recent(upd):
+    if not upd: return False
     try:
-        dt = datetime.fromisoformat(updated_str.replace("Z", "+00:00"))
-        return dt >= datetime.now(timezone.utc) - timedelta(days=LOOKBACK_DAYS)
-    except Exception:
-        return False
+        dt = datetime.fromisoformat(upd.replace("Z","+00:00"))
+        return dt >= datetime.now(timezone.utc)-timedelta(days=LOOKBACK_DAYS)
+    except: return False
 
+def strip_html(h):
+    t = h
+    for a,b in [("&lt;","<"),("&gt;",">"),("&amp;","&"),("&#39;","'"),("&quot;",'"'),
+                 ("<br>","\n"),("<br/>","\n"),("<br />","\n")]:
+        t = t.replace(a,b)
+    t = re.sub(r"<(?:p|div|li|tr)[^>]*>","\n",t,flags=re.IGNORECASE)
+    t = re.sub(r"<[^>]+>","",t)
+    t = re.sub(r"\n{3,}","\n\n",t)
+    return t.strip()
 
-def strip_html(html):
-    text = html
-    for old, new in [("&lt;","<"),("&gt;",">"),("&amp;","&"),("&#39;","'"),
-                     ("&quot;",'"'),("<br>","\n"),("<br/>","\n"),("<br />","\n")]:
-        text = text.replace(old, new)
-    text = re.sub(r"<(?:p|div|li|tr)[^>]*>", "\n", text, flags=re.IGNORECASE)
-    text = re.sub(r"<[^>]+>", "", text)
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
+# ── Posts & Comments ──────────────────────────────────────────────────────────
+def get_posts():
+    entries = []
+    c1 = fetch_rss(f"https://www.reddit.com/r/{SUBREDDIT}/new/.rss?limit=50")
+    entries.extend(parse_atom(c1)); time.sleep(2)
+    q = "NBA+Props+Daily+OR+NBA+Picks+OR+MLB+Props+OR+College+Basketball+OR+NCAABB"
+    c2 = fetch_rss(f"https://www.reddit.com/r/{SUBREDDIT}/search.rss?q={q}&restrict_sr=1&sort=new&t=week&limit=30")
+    entries.extend(parse_atom(c2))
+    print(f"  📥 {len(entries)} RSS entries")
+    seen, out = set(), []
+    for e in entries:
+        sp = detect_sport(e["title"])
+        if not sp or not is_recent(e["updated"]): continue
+        pid = post_id_from_url(e["link"])
+        if not pid or pid in seen: continue
+        seen.add(pid)
+        out.append({"title":e["title"],"url":e["link"],"post_id":pid,"sport":sp})
+        print(f"  📌 [{sp.upper()}] {e['title'][:60]}")
+    return out
 
+def get_comments(pid):
+    c = fetch_rss(f"https://www.reddit.com/comments/{pid}/.rss")
+    entries = parse_atom(c); time.sleep(2)
+    out = []
+    for e in entries:
+        a = e.get("author","")
+        if not a: continue
+        b = strip_html(e.get("content","")).strip()
+        if not b or len(b)<10: continue
+        out.append({"author_raw":a,"author":norm_author(a),"body":b,"id":comment_id(e.get("id",""))})
+    print(f"    💬 {len(out)} comments")
+    return out
 
-# ── Posts ─────────────────────────────────────────────────────────────────────
-def get_recent_matching_posts():
-    all_entries = []
-    content = fetch_rss(f"https://www.reddit.com/r/{SUBREDDIT}/new/.rss?limit=50")
-    all_entries.extend(parse_atom(content))
-    time.sleep(2)
-    search_q = "NBA+Props+Daily+OR+NBA+Betting+OR+NBA+Picks+OR+MLB+Props+OR+College+Basketball"
-    content2 = fetch_rss(
-        f"https://www.reddit.com/r/{SUBREDDIT}/search.rss"
-        f"?q={search_q}&restrict_sr=1&sort=new&t=week&limit=25"
-    )
-    all_entries.extend(parse_atom(content2))
-    print(f"  📥  Fetched {len(all_entries)} total RSS entries")
+# ── Relevance ─────────────────────────────────────────────────────────────────
+def is_picks(body):
+    if len(body)<80: return False
+    nums = bool(re.search(r'\d+\.?\d*',body))
+    kws = len(re.findall(r'\b(over|under|o\d|u\d|parlay|prop|spread|moneyline|pts|reb|ast|3pm|pra|hits|HR|rbi|strikeout|total bases|pick|play|lean|fade|lock)\b',body,re.IGNORECASE))
+    if nums and kws>=3: return True
+    if not nums: return False
+    return kws>=1
 
-    seen_ids = set()
-    matching = []
-    for entry in all_entries:
-        sport = detect_sport(entry["title"])
-        if not sport:
-            continue
-        if not is_recent(entry["updated"]):
-            continue
-        post_id = extract_post_id(entry["link"])
-        if not post_id or post_id in seen_ids:
-            continue
-        seen_ids.add(post_id)
-        matching.append({"title": entry["title"], "url": entry["link"],
-                         "post_id": post_id, "sport": sport})
-        print(f"  📌  [{sport.upper()}] {entry['title'][:60]}")
-    return matching
-
-
-# ── Comments ──────────────────────────────────────────────────────────────────
-def get_comments_rss(post_id):
-    content = fetch_rss(f"https://www.reddit.com/comments/{post_id}/.rss")
-    entries = parse_atom(content)
-    time.sleep(2)
-    comments = []
-    for entry in entries:
-        raw_author = entry.get("author", "")
-        if not raw_author:
-            continue
-        body = strip_html(entry.get("content", "")).strip()
-        if not body or len(body) < 10:
-            continue
-        cid = extract_comment_id(entry.get("id", ""))
-        comments.append({"author_raw": raw_author, "author": normalize_author(raw_author),
-                         "body": body, "id": cid, "link": entry.get("link", "")})
-    print(f"    💬  {len(comments)} comments fetched")
-    return comments
-
-
-# ── Comment relevance check ──────────────────────────────────────────────────
-def is_picks_comment(body, sport):
-    if len(body) < 80:
-        return False
-    has_numbers = bool(re.search(r'\d+\.?\d*', body))
-    bet_kw = re.compile(
-        r'\b(over|under|o\d|u\d|parlay|prop|spread|moneyline|pts|reb|ast|3pm|'
-        r'pra|RA\b|PA\b|PR\b|hits|HR\b|rbi|strikeouts|total bases|'
-        r'picks|play|lean|fade|bol|lock)\b', re.IGNORECASE
-    )
-    keyword_count = len(bet_kw.findall(body))
-    if has_numbers and keyword_count >= 3:
-        return True
-    if not has_numbers:
-        return False
-    if not ANTHROPIC_API_KEY:
-        return keyword_count >= 1
-    sport_label = SPORT_CONFIG.get(sport, {}).get("label", "sports")
-    prompt = (f"Is this Reddit comment an {sport_label} betting picks post with actual "
-              f"specific bets (player props, parlays, over/under picks)?\n"
-              f"Answer NO if it's just a recap, record update, or generic chat.\n\n"
-              f"Comment:\n---\n{body[:1500]}\n---\n\nReply ONLY \"YES\" or \"NO\".")
-    try:
-        resp = requests.post("https://api.anthropic.com/v1/messages",
-            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
-                     "anthropic-version": "2023-06-01"},
-            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 5,
-                  "messages": [{"role": "user", "content": prompt}]}, timeout=15)
-        if resp.ok:
-            answer = resp.json()["content"][0]["text"].strip().upper()
-            if "NO" in answer:
-                print(f"    ⏭️  Not a picks comment — skipping")
-                return False
-    except Exception:
-        pass
-    return keyword_count >= 1
-
-
-def is_meaningful_edit(old_body, new_body):
-    old_clean = RESULT_EMOJIS.sub("", old_body).strip()
-    new_clean = RESULT_EMOJIS.sub("", new_body).strip()
-    old_lines = set(line.strip() for line in old_clean.splitlines() if line.strip())
-    new_lines = set(line.strip() for line in new_clean.splitlines() if line.strip())
-    added = new_lines - old_lines
-    if not added:
-        return False
-    added_text = " ".join(added)
-    has_numbers = bool(re.search(r'\d+\.?\d*', added_text))
-    has_keywords = bool(re.search(
-        r'\b(over|under|o\d|u\d|parlay|prop|spread|pts|reb|ast|3pm|'
-        r'hits|HR|rbi|strikeouts|injured|out|scratch|lineup|changed)\b',
-        added_text, re.IGNORECASE))
-    if has_numbers or has_keywords or len(added_text) > 100:
-        return True
-    return False
-
+def is_real_edit(old_body, new_body):
+    old_c = POSTGAME_RE.sub("",old_body).strip()
+    new_c = POSTGAME_RE.sub("",new_body).strip()
+    old_l = set(l.strip() for l in old_c.splitlines() if l.strip())
+    new_l = set(l.strip() for l in new_c.splitlines() if l.strip())
+    added = new_l - old_l
+    if not added: return False
+    txt = " ".join(added)
+    if re.search(r'\d+\.?\d*',txt): return True
+    if re.search(r'\b(injured|out|scratch|changed|lineup|over|under|parlay)\b',txt,re.IGNORECASE): return True
+    return len(txt)>100
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
-def send_telegram(text):
-    chunks = split_message(text)
-    for i, chunk in enumerate(chunks):
-        resp = requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            json={"chat_id": TELEGRAM_CHAT_ID, "text": chunk,
-                  "parse_mode": "HTML", "disable_web_page_preview": True},
-            timeout=15)
-        if not resp.ok:
-            print(f"  ⚠️  Telegram error {resp.status_code}: {resp.text}", file=sys.stderr)
-        else:
-            print(f"  📨  Sent part {i+1}/{len(chunks)} ({len(chunk)} chars)")
-        if len(chunks) > 1:
-            time.sleep(1)
+def tg_send(text):
+    for chunk in _split(text):
+        r = requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={"chat_id":TELEGRAM_CHAT_ID,"text":chunk,"parse_mode":"HTML","disable_web_page_preview":True},timeout=15)
+        if not r.ok: print(f"  ⚠️ TG: {r.text}",file=sys.stderr)
+        time.sleep(0.5)
 
+def _split(t, lim=4000):
+    if len(t)<=lim: return [t]
+    ch,cur=[],""
+    for l in t.splitlines(keepends=True):
+        if len(cur)+len(l)>lim:
+            if cur: ch.append(cur.rstrip())
+            cur=l
+        else: cur+=l
+    if cur.strip(): ch.append(cur.rstrip())
+    return ch or [t[:lim]]
 
-def split_message(text, limit=MAX_TG_CHARS):
-    if len(text) <= limit:
-        return [text]
-    chunks, current = [], ""
-    for line in text.splitlines(keepends=True):
-        if len(current) + len(line) > limit:
-            if current:
-                chunks.append(current.rstrip())
-            current = line
-        else:
-            current += line
-    if current.strip():
-        chunks.append(current.rstrip())
-    return chunks or [text[:limit]]
+def esc(t): return str(t).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
 
+# ── Claude Format ─────────────────────────────────────────────────────────────
+def format_comment(user, body, title, sport, is_edit=False):
+    if not ANTHROPIC_API_KEY: return esc(body)
+    sl = SPORTS.get(sport,{}).get("label","Sports")
+    se = "⚾" if sport=="mlb" else "🏀"
+    ed = "Start with '✏️ <b>EDITED</b>' on its own line.\n\n" if is_edit else ""
+    prompt = f"""{ed}Format this {sl} betting analyst's Reddit post for Telegram.
 
-def escape_html(text):
-    return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
-# ── Claude Formatting ─────────────────────────────────────────────────────────
-def format_with_claude(username, body, post_title, sport, is_edit=False):
-    if not ANTHROPIC_API_KEY:
-        return escape_html(body.strip())
-    sport_label = SPORT_CONFIG.get(sport, {}).get("label", "Sports")
-    sport_emoji = "⚾" if sport == "mlb" else "🏀"
-    edit_note = "NOTE: This is an EDITED version — start with '✏️ <b>EDITED</b>' on its own line.\n\n" if is_edit else ""
-
-    prompt = f"""{edit_note}You are formatting a {sport_label} betting analyst's Reddit post for Telegram.
-
-u/{username} posted in "{post_title}":
-
+u/{user} posted in "{title}":
 ---
 {body}
 ---
-
-Format as a clean Telegram message:
-
-EMOJIS (NEVER use ✅ or ❌ — reserved for results):
-- {sport_emoji} before game matchup headers
-- 🎯 before each pick/bet
-- ⚠️ before injury/lineup news
-- 📊 before stats/trends
-- 💡 before analysis/reasoning
-- ⭐ for the strongest play
-- 🎰 before parlays
 
 RULES:
+- {se} before game matchup headers
+- 🎯 before each individual pick/bet
+- ⚠️ before injury/lineup news
+- 📊 before stats/trends
+- 💡 before analysis
+- ⭐ for strongest play of the day
+- 🎰 before parlays
+- DO NOT use ✅ or ❌ (reserved for results)
 - <b>bold</b> player and team names
-- Convert American odds to decimal: +200→3.00, -130→1.77
-- REMOVE: thank yous, follower counts, records, tip jars, social plugs, any ✅/❌ emojis
-- ONLY use <b> and <i> HTML tags
+- Convert American odds to decimal (+200→3.00, -130→1.77)
+- REMOVE: thank yous, records, tip jars, social media, any ✅❌ emojis
+- ONLY <b> and <i> HTML tags
 - Return ONLY the formatted message"""
-
     try:
-        resp = requests.post("https://api.anthropic.com/v1/messages",
-            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
-                     "anthropic-version": "2023-06-01"},
-            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 3000,
-                  "messages": [{"role": "user", "content": prompt}]}, timeout=40)
-        if resp.ok:
-            return resp.json()["content"][0]["text"].strip()
-    except Exception as e:
-        print(f"    ⚠️  Claude error: {e}", file=sys.stderr)
-    return escape_html(body.strip())
+        r = requests.post("https://api.anthropic.com/v1/messages",
+            headers={"Content-Type":"application/json","x-api-key":ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},
+            json={"model":"claude-haiku-4-5-20251001","max_tokens":3000,
+                  "messages":[{"role":"user","content":prompt}]},timeout=40)
+        if r.ok: return r.json()["content"][0]["text"].strip()
+    except Exception as e: print(f"  ⚠️ Format err: {e}",file=sys.stderr)
+    return esc(body)
 
+def build_msg(title, url, user, body, sport, is_edit=False):
+    ed = "  ✏️ <i>(edited)</i>" if is_edit else ""
+    em = SPORTS.get(sport,{}).get("emoji","🏀")
+    dd = fmt_date(date_from_title(title))
+    return (f"{em} <b>{esc(title)}</b>\n"
+            f"───────────────\n"
+            f"💬 <b>u/{user}</b>{ed}\n\n"
+            f"{body}\n\n"
+            f"🔗 <a href='{url}'>View on Reddit</a>")
 
-def build_message(post_title, post_url, username, formatted_body, sport, is_edit=False):
-    edit_tag = "  ✏️ <i>(edited)</i>" if is_edit else ""
-    emoji = SPORT_CONFIG.get(sport, {}).get("emoji", "🏀")
-    return (
-        f"{emoji} <b>{escape_html(post_title)}</b>\n"
-        f"───────────────\n"
-        f"💬 <b>u/{username}</b>{edit_tag}\n\n"
-        f"{formatted_body}\n\n"
-        f"🔗 <a href='{post_url}'>View on Reddit</a>"
-    )
-
-
-# ── Bet Parsing (uses Sonnet for accuracy) ────────────────────────────────────
-def parse_bets_with_claude(username, body, post_title, date_str, sport):
-    if not ANTHROPIC_API_KEY:
-        return []
-    sport_label = SPORT_CONFIG.get(sport, {}).get("label", "Sports")
-    if sport == "mlb":
-        stat_guide = ('- "stat": "H","HR","RBI","R","SB","TB","K","BB","ER","IP","HITS_ALLOWED" or null\n'
-                      '- For pitcher props: "K" (strikeouts), "ER", "IP"\n'
-                      '- For batter props: "H" (hits), "HR", "RBI", "R" (runs), "SB", "TB"')
+# ── Bet Parsing (Sonnet for accuracy) ─────────────────────────────────────────
+def parse_bets(user, body, title, date, sport):
+    if not ANTHROPIC_API_KEY: return []
+    sl = SPORTS.get(sport,{}).get("label","Sports")
+    if sport=="mlb":
+        sg = '"stat": one of "H","HR","RBI","R","SB","TB","K","ER","IP" or null'
     else:
-        stat_guide = ('- "stat": "PTS","REB","AST","3PM","BLK","STL","PRA","PR","PA","RA" or null\n'
-                      '- Use "3PM" for three-pointers, even if user writes "3s" or "3\'s"')
+        sg = '"stat": one of "PTS","REB","AST","3PM","BLK","STL","PRA","PR","PA","RA" or null. Use "3PM" for threes even if user writes "3s" or "3\'s"'
 
-    prompt = f"""You are a precise sports betting data extractor. Extract ALL {sport_label} bets from this Reddit comment.
+    prompt = f"""Extract {sl} bets from this Reddit comment. Be EXTREMELY precise.
 
-Post: {post_title} | User: u/{username} | Date: {date_str}
+Post: {title} | User: u/{user} | Date: {date}
 ---
 {body}
 ---
 
-Return a JSON array. Each element:
-- "description": COMPLETE bet, e.g. "Dejounte Murray Over 11.5 RA" or "Parlay 1: Dejounte Murray O11.5 RA + Devin Booker O5.5 AST"
-- "player": full name or null (null for parlays)
-- "team": abbreviation or null
-- "opponent": abbreviation or null
-- "bet_type": "player_prop" | "parlay" | "spread" | "moneyline" | "total" | "other"
-{stat_guide}
-- "line": number — REQUIRED for player_prop
-- "direction": "over" | "under" — REQUIRED for player_prop
-- "confidence": "lean" | "like" | "play" | "strong" | "fade" | null
+Return JSON array. Each element:
+{{"description":"Dejounte Murray Over 11.5 RA", "player":"Dejounte Murray", "team":"NOP", "opponent":"NYK", "bet_type":"player_prop", "stat":"RA", "line":11.5, "direction":"over", "confidence":"play"}}
 
-ABSOLUTE RULES:
-1. Every player_prop MUST have: full player name, stat, numeric line, direction. NEVER output incomplete bets like "Murray RA" or "Booker" alone.
-2. PARLAYS: Users often write parlay legs as shorthand (e.g., "Murray RA + Booker AST + Banchero PTS"). These reference their individual picks listed ABOVE in the same comment. You MUST look up each reference and expand to the complete bet with the exact line number. Example: if individual picks list "Dejounte Murray Over 11.5 RA" and "Devin Booker Over 5.5 AST", then "Murray RA + Booker AST" becomes "Parlay: Dejounte Murray O11.5 RA + Devin Booker O5.5 AST".
-3. If you cannot find the line number for a parlay leg reference, SKIP that entire parlay. Never include a parlay with vague or incomplete legs.
-4. Use " + " between parlay legs.
-5. Return ONLY valid JSON. No markdown fences, no explanation."""
+For parlays:
+{{"description":"Parlay 1: Dejounte Murray O11.5 RA + Devin Booker O5.5 AST", "player":null, "team":null, "opponent":null, "bet_type":"parlay", "stat":null, "line":null, "direction":null, "confidence":"play"}}
+
+RULES — READ CAREFULLY:
+1. {sg}
+2. Every player_prop MUST have player + stat + line (number) + direction. NEVER create a bet without a line number.
+3. PARLAYS: Users often write shorthand like "Parlay: Murray RA + Booker AST". These reference their individual picks listed above. You MUST expand each leg to full form with the line number from the individual pick. If "Dejounte Murray Over 11.5 RA" is listed above, then "Murray RA" in the parlay means "Dejounte Murray O11.5 RA". ALWAYS include the line number.
+4. NEVER extract parlay leg references as separate individual bets. If a user lists individual picks and then says "Parlay: pick1 + pick2", only create one player_prop per pick and one parlay entry. Do NOT create extra player_props for the parlay legs.
+5. If you cannot determine the line number for a parlay leg, SKIP the entire parlay.
+6. Return ONLY JSON array, no markdown, no explanation."""
 
     try:
-        resp = requests.post("https://api.anthropic.com/v1/messages",
-            headers={"Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY,
-                     "anthropic-version": "2023-06-01"},
-            json={"model": "claude-sonnet-4-20250514", "max_tokens": 3000,
-                  "messages": [{"role": "user", "content": prompt}]}, timeout=45)
-        if resp.ok:
-            raw = resp.json()["content"][0]["text"].strip()
-            raw = raw.replace("```json", "").replace("```", "").strip()
+        r = requests.post("https://api.anthropic.com/v1/messages",
+            headers={"Content-Type":"application/json","x-api-key":ANTHROPIC_API_KEY,"anthropic-version":"2023-06-01"},
+            json={"model":"claude-sonnet-4-20250514","max_tokens":3000,
+                  "messages":[{"role":"user","content":prompt}]},timeout=45)
+        if r.ok:
+            raw = r.json()["content"][0]["text"].strip().replace("```json","").replace("```","").strip()
             bets = json.loads(raw)
-            if not isinstance(bets, list):
-                return []
-            # ── Strict validation ──
+            if not isinstance(bets,list): return []
+            # ── STRICT VALIDATION ──
             valid = []
-            for bet in bets:
-                bt = bet.get("bet_type", "other")
-                if bt == "player_prop":
-                    if not bet.get("player"):
-                        print(f"    🗑️  Rejected (no player): {bet.get('description','')[:50]}")
+            for b in bets:
+                bt = b.get("bet_type","other")
+                desc = b.get("description","")
+                if bt=="player_prop":
+                    # Must have all 4: player, stat, line, direction
+                    if not b.get("player") or b.get("line") is None or not b.get("direction") or not b.get("stat"):
+                        print(f"    🗑️ Rejected incomplete: {desc[:50]}")
                         continue
-                    if bet.get("line") is None:
-                        print(f"    🗑️  Rejected (no line): {bet.get('description','')[:50]}")
+                    # Description must contain a number
+                    if not re.search(r'\d',desc):
+                        print(f"    🗑️ Rejected no-number: {desc[:50]}")
                         continue
-                    if not bet.get("direction"):
-                        print(f"    🗑️  Rejected (no direction): {bet.get('description','')[:50]}")
-                        continue
-                    if not bet.get("stat"):
-                        print(f"    🗑️  Rejected (no stat): {bet.get('description','')[:50]}")
-                        continue
-                elif bt == "parlay":
-                    desc = bet.get("description", "")
-                    # Check each leg has a number (line)
-                    legs_text = re.sub(r'^[^:]+:\s*', '', desc)
-                    legs = re.split(r'\s+\+\s+', legs_text)
-                    bad_leg = False
+                elif bt=="parlay":
+                    # Every leg in description must have a number
+                    legs_part = re.sub(r'^[^:]+:\s*','',desc)
+                    legs = re.split(r'\s+\+\s+',legs_part)
+                    bad = False
                     for leg in legs:
-                        if not re.search(r'\d+\.?\d*', leg):
-                            print(f"    🗑️  Rejected parlay (leg missing line): {leg[:40]}")
-                            bad_leg = True
-                            break
-                    if bad_leg:
-                        continue
-                valid.append(bet)
-            dropped = len(bets) - len(valid)
-            if dropped:
-                print(f"    🗑️  Dropped {dropped} malformed bet(s)")
+                        if not re.search(r'\d',leg):
+                            print(f"    🗑️ Rejected parlay leg without line: {leg[:40]}")
+                            bad = True; break
+                    if bad: continue
+                valid.append(b)
+            d = len(bets)-len(valid)
+            if d: print(f"    🗑️ Dropped {d} malformed bet(s)")
             return valid
-    except Exception as e:
-        print(f"  ⚠️  Claude parse error: {e}", file=sys.stderr)
+    except Exception as e: print(f"  ⚠️ Parse err: {e}",file=sys.stderr)
     return []
-
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    print(f"🤖  Bot v{VERSION} starting — "
-          f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
-    print(f"    Lookback: {LOOKBACK_DAYS} days")
-
-    state = ensure_keys(load_state())
+    print(f"🤖 Bot v{V} — {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
+    st = ensure_keys(load_state())
     sends = 0
-    posts = get_recent_matching_posts()
-    print(f"  🎯  {len(posts)} matching post(s)")
-
-    if not posts:
-        print("  💤  No matching posts — done.")
-        save_state(state)
-        return
+    posts = get_posts()
+    print(f"  🎯 {len(posts)} posts found")
+    if not posts: save_state(st); return
 
     for post in posts:
-        title, post_url, post_id, sport = post["title"], post["url"], post["post_id"], post["sport"]
-        post_date = extract_date_from_title(title)
-        print(f"\n  📅  [{sport.upper()}] {post_date} | {title[:60]}")
+        t,u,pid,sp = post["title"],post["url"],post["post_id"],post["sport"]
+        pd = date_from_title(t)
+        print(f"\n  📅 [{sp.upper()}] {pd} | {t[:55]}")
+        comms = get_comments(pid)
+        best = {}
+        for c in comms:
+            ak = c["author"]
+            if ak not in USERS or sp not in USERS[ak]: continue
+            if ak not in best or len(c["body"])>len(best[ak]["body"]): best[ak]=c
 
-        comments = get_comments_rss(post_id)
-        user_comments = {}
-        for comment in comments:
-            ak = comment["author"]
-            if ak not in TARGET_USERS or sport not in TARGET_USERS[ak]:
-                continue
-            if ak not in user_comments or len(comment["body"]) > len(user_comments[ak]["body"]):
-                user_comments[ak] = comment
+        for ak,c in best.items():
+            disp = c["author_raw"].strip().lstrip("/u/").lstrip("u/")
+            print(f"  🎯 u/{disp} ({len(c['body'])} chars)")
+            if not is_picks(c["body"]): print(f"    ⏭️ Not picks"); continue
 
-        for author_key, comment in user_comments.items():
-            author_display = comment["author_raw"].strip().lstrip("/u/").lstrip("u/")
-            print(f"  🎯  u/{author_display} ({len(comment['body'])} chars)")
+            cid,body = c["id"],c["body"]
+            h = body_hash(body)
+            seen = st["seen_comments"].get(cid,{})
+            is_new = not seen
+            is_ed = not is_new and seen.get("hash")!=h
+            sk = f"{ak}:{pid}"
 
-            cid, body = comment["id"], comment["body"]
+            if not is_new and not is_ed: print(f"    ⏭️ Unchanged"); continue
+            if is_ed:
+                ob = seen.get("body_preview","")
+                if ob and not is_real_edit(ob,body):
+                    st["seen_comments"][cid]["hash"]=h; continue
+                print(f"    ✏️ Real edit detected")
+            elif st["sent_per_post"].get(sk): print(f"    ⏭️ Already sent"); continue
 
-            if not is_picks_comment(body, sport):
-                continue
-
-            chash     = smart_body_hash(body)
-            seen      = state["seen_comments"].get(cid, {})
-            is_new    = not seen
-            is_edited = not is_new and seen.get("hash") != chash
-            sent_key  = f"{author_key}:{post_id}"
-
-            if not is_new and not is_edited:
-                print(f"    ⏭️   Unchanged")
-                continue
-            if is_edited:
-                old_body = seen.get("body_preview", "")
-                if old_body and not is_meaningful_edit(old_body, body):
-                    state["seen_comments"][cid]["hash"] = chash
-                    continue
-                print(f"    ✏️   Meaningful edit — resending")
-            elif state["sent_per_post"].get(sent_key):
-                print(f"    ⏭️   Already sent")
-                continue
-
-            formatted = format_with_claude(author_display, body, title, sport, is_edit=is_edited)
-            message = build_message(title, post_url, author_display, formatted, sport, is_edit=is_edited)
-            send_telegram(message)
-            state["seen_comments"][cid] = {"hash": chash, "date": post_date, "body_preview": body[:500]}
-            state["sent_per_post"][sent_key] = True
-            sends += 1
+            fmt = format_comment(disp,body,t,sp,is_edit=is_ed)
+            msg = build_msg(t,u,disp,fmt,sp,is_edit=is_ed)
+            tg_send(msg)
+            st["seen_comments"][cid]={"hash":h,"date":pd,"body_preview":body[:500]}
+            st["sent_per_post"][sk]=True; sends+=1
 
             if is_new:
-                bets = parse_bets_with_claude(author_display, body, title, post_date, sport)
-                state["pending_bets"] = [b for b in state["pending_bets"]
-                                         if not b.get("id", "").startswith(f"{cid}_")]
-                stored = 0
-                for i, bet in enumerate(bets):
-                    if not bet.get("description"):
-                        continue
-                    state["pending_bets"].append({
-                        "id": f"{cid}_{i}", "user": author_display,
-                        "date": post_date, "sport": sport,
-                        "post_title": title, "post_url": post_url,
-                        "description": bet.get("description", ""),
-                        "player": bet.get("player"), "team": bet.get("team"),
-                        "opponent": bet.get("opponent"),
-                        "bet_type": bet.get("bet_type", "other"),
-                        "stat": bet.get("stat"), "line": bet.get("line"),
-                        "direction": bet.get("direction"),
-                        "confidence": bet.get("confidence"), "result": None,
-                    })
-                    stored += 1
-                print(f"    💾  Stored {stored} bet(s)")
+                bets = parse_bets(disp,body,t,pd,sp)
+                st["pending_bets"]=[b for b in st["pending_bets"] if not b.get("id","").startswith(f"{cid}_")]
+                stored=0
+                for i,b in enumerate(bets):
+                    if not b.get("description"): continue
+                    st["pending_bets"].append({"id":f"{cid}_{i}","user":disp,"date":pd,"sport":sp,
+                        "post_title":t,"post_url":u,"description":b.get("description",""),
+                        "player":b.get("player"),"team":b.get("team"),"opponent":b.get("opponent"),
+                        "bet_type":b.get("bet_type","other"),"stat":b.get("stat"),
+                        "line":b.get("line"),"direction":b.get("direction"),
+                        "confidence":b.get("confidence"),"result":None})
+                    stored+=1
+                print(f"    💾 {stored} bets stored")
 
-    save_state(state)
-    print(f"\n✅  Bot v{VERSION} done — {sends} message(s) sent.")
+    save_state(st)
+    print(f"\n✅ Bot v{V} done — {sends} sent")
 
-
-if __name__ == "__main__":
-    main()
+if __name__=="__main__": main()
