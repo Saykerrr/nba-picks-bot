@@ -1,258 +1,5 @@
 {
-  "pending_bets": [
-    {
-      "id": "ocn8oxj_0",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "Dejounte Murray Over 16.5 PTS",
-      "player": "Dejounte Murray",
-      "team": "NOP",
-      "opponent": "DET",
-      "bet_type": "player_prop",
-      "stat": "PTS",
-      "line": 16.5,
-      "direction": "over",
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "ocn8oxj_1",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "Raynaud Over 15.5 PTS",
-      "player": "Raynaud",
-      "team": "SAC",
-      "opponent": "ORL",
-      "bet_type": "player_prop",
-      "stat": "PTS",
-      "line": 15.5,
-      "direction": "over",
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "ocn8oxj_2",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "LaMelo Ball Over 30.5 PRA",
-      "player": "LaMelo Ball",
-      "team": "CHA",
-      "opponent": "NYK",
-      "bet_type": "player_prop",
-      "stat": "PRA",
-      "line": 30.5,
-      "direction": "over",
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "ocn8oxj_3",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "Karl-Anthony Towns Over 29.5 PR",
-      "player": "Karl-Anthony Towns",
-      "team": "NYK",
-      "opponent": "CHA",
-      "bet_type": "player_prop",
-      "stat": "PR",
-      "line": 29.5,
-      "direction": "over",
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "ocn8oxj_4",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "Parlay 1: Duncan Robinson Over 2.5 3PM + Karl-Anthony Towns Over 1.5 3PM",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "ocn8oxj_5",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "Parlay 2: OG Anunoby Over 2.5 3PM + Saddiq Bey Over 14.5 PTS",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "ocn8oxj_6",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "Parlay 3: LaMelo Ball Over 19.5 PTS + Dejounte Murray Over 10.5 RA",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "ocn8oxj_7",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "Parlay 4: Josh Hart Over 1.5 3PM + Paolo Banchero Over 1.5 3PM",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "ocn8oxj_8",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
-      "description": "Degen parlay: Dejounte Murray Over 7.5 AST + Precious Achiuwa Over 9.5 REB",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "oclqiil_0",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
-      "description": "Parlay 1: Freddie Freeman over 1.5 HRR, Julio Rodriguez over 1.5 HRR (+200)",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "oclqiil_1",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
-      "description": "Parlay 2: Spencer Horwitz over 1.5 HRR, Willson Contreras over 2.5 HRR (+400)",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "oclqiil_2",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
-      "description": "Degen Parlay 1: Jose Ramirez 3+ bases, Teoscar Hernandez 3+ bases (+1100)",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "oclqiil_3",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
-      "description": "Degen Parlay 2: Trevor Story 4+ bases, Tyler O'Neill 4+ bases (+1400)",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "oclqiil_4",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-26",
-      "sport": "mlb",
-      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
-      "description": "Degen parlay 3: Junior Caminero 3+ bases, Colson Montgomery 3+ bases, Jo Adell 3+ bases (+3500)",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    }
-  ],
+  "pending_bets": [],
   "graded_bets": [
     {
       "id": "oced4jz_0",
@@ -566,6 +313,352 @@
         }
       ],
       "graded_date": "2026-03-26"
+    },
+    {
+      "id": "ocn8oxj_0",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "Dejounte Murray Over 16.5 PTS",
+      "player": "Dejounte Murray",
+      "team": "NOP",
+      "opponent": "DET",
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 16.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": "loss",
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "ocn8oxj_1",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "Raynaud Over 15.5 PTS",
+      "player": "Raynaud",
+      "team": "SAC",
+      "opponent": "ORL",
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 15.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": "loss",
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "ocn8oxj_2",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "LaMelo Ball Over 30.5 PRA",
+      "player": "LaMelo Ball",
+      "team": "CHA",
+      "opponent": "NYK",
+      "bet_type": "player_prop",
+      "stat": "PRA",
+      "line": 30.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": "win",
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "ocn8oxj_3",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "Karl-Anthony Towns Over 29.5 PR",
+      "player": "Karl-Anthony Towns",
+      "team": "NYK",
+      "opponent": "CHA",
+      "bet_type": "player_prop",
+      "stat": "PR",
+      "line": 29.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": "loss",
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "ocn8oxj_4",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "Parlay 1: Duncan Robinson Over 2.5 3PM + Karl-Anthony Towns Over 1.5 3PM",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Duncan Robinson Over 2.5 3PM",
+          "result": "dnp"
+        },
+        {
+          "description": "Karl-Anthony Towns Over 1.5 3PM",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "ocn8oxj_5",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "Parlay 2: OG Anunoby Over 2.5 3PM + Saddiq Bey Over 14.5 PTS",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "win",
+      "leg_results": [
+        {
+          "description": "OG Anunoby Over 2.5 3PM",
+          "result": "win"
+        },
+        {
+          "description": "Saddiq Bey Over 14.5 PTS",
+          "result": "win"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "ocn8oxj_6",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "Parlay 3: LaMelo Ball Over 19.5 PTS + Dejounte Murray Over 10.5 RA",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "win",
+      "leg_results": [
+        {
+          "description": "LaMelo Ball Over 19.5 PTS",
+          "result": "win"
+        },
+        {
+          "description": "Dejounte Murray Over 10.5 RA",
+          "result": "win"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "ocn8oxj_7",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "Parlay 4: Josh Hart Over 1.5 3PM + Paolo Banchero Over 1.5 3PM",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Josh Hart Over 1.5 3PM",
+          "result": "win"
+        },
+        {
+          "description": "Paolo Banchero Over 1.5 3PM",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "ocn8oxj_8",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3xmya/nba_props_daily_32626_thursday/",
+      "description": "Degen parlay: Dejounte Murray Over 7.5 AST + Precious Achiuwa Over 9.5 REB",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Dejounte Murray Over 7.5 AST",
+          "result": "loss"
+        },
+        {
+          "description": "Precious Achiuwa Over 9.5 REB",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "oclqiil_0",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
+      "description": "Parlay 1: Freddie Freeman over 1.5 HRR, Julio Rodriguez over 1.5 HRR (+200)",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Freddie Freeman over 1.5 HRR, Julio Rodriguez over 1.5 HRR",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "oclqiil_1",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
+      "description": "Parlay 2: Spencer Horwitz over 1.5 HRR, Willson Contreras over 2.5 HRR (+400)",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Spencer Horwitz over 1.5 HRR, Willson Contreras over 2.5 HRR",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "oclqiil_2",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
+      "description": "Degen Parlay 1: Jose Ramirez 3+ bases, Teoscar Hernandez 3+ bases (+1100)",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Jose Ramirez 3+ bases, Teoscar Hernandez 3+ bases",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "oclqiil_3",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
+      "description": "Degen Parlay 2: Trevor Story 4+ bases, Tyler O'Neill 4+ bases (+1400)",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Trevor Story 4+ bases, Tyler O'Neill 4+ bases",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-27"
+    },
+    {
+      "id": "oclqiil_4",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-26",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/26/26 (Thursday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s3wcce/mlb_props_and_home_run_picks_32626_thursday/",
+      "description": "Degen parlay 3: Junior Caminero 3+ bases, Colson Montgomery 3+ bases, Jo Adell 3+ bases (+3500)",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Junior Caminero 3+ bases, Colson Montgomery 3+ bases, Jo Adell 3+ bases",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-27"
     }
   ],
   "seen_comments": {
@@ -618,11 +711,11 @@
       "parlay_losses": 0
     },
     "Novel_Calendar5168": {
-      "straight_wins": 10,
-      "straight_losses": 0,
+      "straight_wins": 11,
+      "straight_losses": 3,
       "straight_pushes": 0,
-      "parlay_wins": 2,
-      "parlay_losses": 0
+      "parlay_wins": 4,
+      "parlay_losses": 8
     }
   }
 }
