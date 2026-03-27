@@ -71,6 +71,78 @@
       "direction": "under",
       "confidence": "4 unit hammer",
       "result": null
+    },
+    {
+      "id": "octlshu_0",
+      "user": "taraujo",
+      "date": "2026-03-27",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/27/26 (Friday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s4t17x/mlb_props_and_home_run_picks_32726_friday/",
+      "description": "Cam Schlittler Over 5.5 K's",
+      "player": "Cam Schlittler",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "K",
+      "line": 5.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "octlshu_1",
+      "user": "taraujo",
+      "date": "2026-03-27",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/27/26 (Friday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s4t17x/mlb_props_and_home_run_picks_32726_friday/",
+      "description": "Chris Sale Over 5.5 K's",
+      "player": "Chris Sale",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "K",
+      "line": 5.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "octlshu_2",
+      "user": "taraujo",
+      "date": "2026-03-27",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/27/26 (Friday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s4t17x/mlb_props_and_home_run_picks_32726_friday/",
+      "description": "Kyle Freeland Over 3.5 K's",
+      "player": "Kyle Freeland",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "K",
+      "line": 3.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "octlshu_3",
+      "user": "taraujo",
+      "date": "2026-03-27",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/27/26 (Friday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s4t17x/mlb_props_and_home_run_picks_32726_friday/",
+      "description": "Parlay 2: Cam Schlittler O5.5 K's + Chris Sale O5.5 K's + Kyle Freeland O3.5 K's",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": null
     }
   ],
   "graded_bets": [
@@ -771,9 +843,14 @@
       "body_preview": "MLB Friday Writeup \nYankees vs Giants: Judge (3 off Ray in 8 AB\u2019s), Stanton \nAthletics vs Blue Jays: Rooker (1 off Gausman), Kurtz, Butler, McNeil, Springer (2 off Severino but 34 AB\u2019s), Varsho, Vlad (1 off Severino), Barger \nRockies vs Marlins: Morel (2 in 8 AB), Lopez, Moniak \nRoyals vs Braves: Witt Jr, India, Riley (1 HR in 1 AB) \nAngels vs Astros: Schanuel, Meyers (2 in 12 AB), Paredes (2 in 18 AB), Alvarez (3 in 28 AB) \nTigers vs Padres: Machado (1 in 8 AB), Laureano \nGuardians vs Mariners:"
     },
     "ocspzq4": {
-      "hash": "695e27643759825de4490ccf7024a507",
+      "hash": "37161b510f8b25d83794f7bcbfa49135",
       "date": "2026-03-27",
-      "body_preview": "Tip-off at 1:30 CT for Women\u2019s Tourney MONDAY  \nWNCAA Tourney 25-11 +23.9 units We go 6-2 Monday +9.7 units \nWNCAA Conference Tourney 1-3 -2.1 Units \nLast Year WNCAA Tourney Record 36-25 +13.975 Units \nA bit of a slow start Monday going 1-2 before we got into my favorite plays. We now start to see the heavy favorites lines drop as the top teams starting to play each other . Many games were going over their totals (partly thanks to OTs), but I do expect that to slow down a little with top teams s"
+      "body_preview": "Tip-off at 1:30 CT for Women\u2019s Tourney Friday  \nWNCAA Tourney 25-11 +23.9 units We go 6-2 Monday +9.7 units \nWNCAA Conference Tourney 1-3 -2.1 Units \nLast Year WNCAA Tourney Record 36-25 +13.975 Units \nA bit of a slow start Monday going 1-2 before we got into my favorite plays. We now start to see the heavy favorites lines drop as the top teams starting to play each other . Many games were going over their totals (partly thanks to OTs), but I do expect that to slow down a little with top teams s"
+    },
+    "octlshu": {
+      "hash": "973f223ef1f6d5923dfa10b7c0e62d0d",
+      "date": "2026-03-27",
+      "body_preview": "Friday, March 27th MLB Betting Card \u26be\ufe0f  \nSeason Record 9-5 \nHome Run Record 0-9 \nRonald Acuna O 1.5 Hits + Runs + RBIs \nVlad Guerrero Jr. O 1.5 Hits + Runs + RBIs \nNick Kurtz O 1.5 Hits + Runs + RBIs \nCam Schlittler 6+ K\u2019s \nChris Sale 6+ K\u2019s \nKyle Freeland 4+ K\u2019s  \nParlay 1: Ronald Acuna O 1.5 Hits + Runs + RBIs, Vlad Guerrero Jr. O 1.5 Hits + Runs + RBIs, Nick Kurtz O 1.5 Hits + Runs + RBIs \nParlay 2: Cam Schlittler 6+ K\u2019s, Chris Sale 6+ K\u2019s. Kyle Freeland 4+ K\u2019s \nHome Runs: Hunter Goodman, Kev"
     }
   },
   "sent_per_post": {
@@ -784,7 +861,8 @@
     "novel_calendar5168:1s22jvi": true,
     "novel_calendar5168:1s15jhx": true,
     "novel_calendar5168:1s4t17x": true,
-    "wnba_prodigy:1s4slw3": true
+    "wnba_prodigy:1s4slw3": true,
+    "taraujo:1s4t17x": true
   },
   "tracking_start": "2026-03-23",
   "stats": {
