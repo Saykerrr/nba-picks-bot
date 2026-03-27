@@ -1,5 +1,78 @@
 {
-  "pending_bets": [],
+  "pending_bets": [
+    {
+      "id": "ocspzq4_0",
+      "user": "wnba_prodigy",
+      "date": "2026-03-27",
+      "sport": "ncaabb",
+      "post_title": "NCAABB College Basketball Betting and Picks - 3/27/26 (Friday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s4slw3/ncaabb_college_basketball_betting_and_picks_32726/",
+      "description": "Vanderbilt -5.5",
+      "player": null,
+      "team": "Vanderbilt",
+      "opponent": "Notre Dame",
+      "bet_type": "spread",
+      "stat": null,
+      "line": -5.5,
+      "direction": "under",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "ocspzq4_1",
+      "user": "wnba_prodigy",
+      "date": "2026-03-27",
+      "sport": "ncaabb",
+      "post_title": "NCAABB College Basketball Betting and Picks - 3/27/26 (Friday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s4slw3/ncaabb_college_basketball_betting_and_picks_32726/",
+      "description": "UCONN over 133.5",
+      "player": null,
+      "team": "UCONN",
+      "opponent": "UNC",
+      "bet_type": "total",
+      "stat": null,
+      "line": 133.5,
+      "direction": "over",
+      "confidence": "3 units",
+      "result": null
+    },
+    {
+      "id": "ocspzq4_2",
+      "user": "wnba_prodigy",
+      "date": "2026-03-27",
+      "sport": "ncaabb",
+      "post_title": "NCAABB College Basketball Betting and Picks - 3/27/26 (Friday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s4slw3/ncaabb_college_basketball_betting_and_picks_32726/",
+      "description": "Minnesota +19",
+      "player": null,
+      "team": "Minnesota",
+      "opponent": null,
+      "bet_type": "spread",
+      "stat": null,
+      "line": 19,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "ocspzq4_3",
+      "user": "wnba_prodigy",
+      "date": "2026-03-27",
+      "sport": "ncaabb",
+      "post_title": "NCAABB College Basketball Betting and Picks - 3/27/26 (Friday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s4slw3/ncaabb_college_basketball_betting_and_picks_32726/",
+      "description": "LSU -9",
+      "player": null,
+      "team": "LSU",
+      "opponent": "Duke",
+      "bet_type": "spread",
+      "stat": null,
+      "line": -9,
+      "direction": "under",
+      "confidence": "4 unit hammer",
+      "result": null
+    }
+  ],
   "graded_bets": [
     {
       "id": "oced4jz_0",
@@ -696,6 +769,11 @@
       "hash": "44c28508b91de8b672033e16f5db3fe9",
       "date": "2026-03-27",
       "body_preview": "MLB Friday Writeup \nYankees vs Giants: Judge (3 off Ray in 8 AB\u2019s), Stanton \nAthletics vs Blue Jays: Rooker (1 off Gausman), Kurtz, Butler, McNeil, Springer (2 off Severino but 34 AB\u2019s), Varsho, Vlad (1 off Severino), Barger \nRockies vs Marlins: Morel (2 in 8 AB), Lopez, Moniak \nRoyals vs Braves: Witt Jr, India, Riley (1 HR in 1 AB) \nAngels vs Astros: Schanuel, Meyers (2 in 12 AB), Paredes (2 in 18 AB), Alvarez (3 in 28 AB) \nTigers vs Padres: Machado (1 in 8 AB), Laureano \nGuardians vs Mariners:"
+    },
+    "ocspzq4": {
+      "hash": "695e27643759825de4490ccf7024a507",
+      "date": "2026-03-27",
+      "body_preview": "Tip-off at 1:30 CT for Women\u2019s Tourney MONDAY  \nWNCAA Tourney 25-11 +23.9 units We go 6-2 Monday +9.7 units \nWNCAA Conference Tourney 1-3 -2.1 Units \nLast Year WNCAA Tourney Record 36-25 +13.975 Units \nA bit of a slow start Monday going 1-2 before we got into my favorite plays. We now start to see the heavy favorites lines drop as the top teams starting to play each other . Many games were going over their totals (partly thanks to OTs), but I do expect that to slow down a little with top teams s"
     }
   },
   "sent_per_post": {
@@ -705,7 +783,8 @@
     "novel_calendar5168:1s2zel6": true,
     "novel_calendar5168:1s22jvi": true,
     "novel_calendar5168:1s15jhx": true,
-    "novel_calendar5168:1s4t17x": true
+    "novel_calendar5168:1s4t17x": true,
+    "wnba_prodigy:1s4slw3": true
   },
   "tracking_start": "2026-03-23",
   "stats": {
