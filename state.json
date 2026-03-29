@@ -521,6 +521,24 @@
       "direction": null,
       "confidence": "play",
       "result": null
+    },
+    {
+      "id": "od2rfkt_0",
+      "user": "wnba_prodigy",
+      "date": "2026-03-29",
+      "sport": "ncaabb",
+      "post_title": "NCAABB College Basketball Betting and Picks - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6is88/ncaabb_college_basketball_betting_and_picks_32926/",
+      "description": "UCLA -11.5",
+      "player": null,
+      "team": "UCLA",
+      "opponent": "Duke",
+      "bet_type": "spread",
+      "stat": null,
+      "line": -11.5,
+      "direction": null,
+      "confidence": "3 units",
+      "result": null
     }
   ],
   "graded_bets": [
@@ -1953,9 +1971,14 @@
       "body_preview": "Saturday, March 28th NBA Betting Card \ud83c\udfc0 \nSeason Record 598-470 \nJoel Embiid O 38.5 PRA \nJalen Duren O 33.5 P+R \nStephon Castle O 11.5 R+A \nJalen Green O 23.5 P+A \nKon Knuppel O 22 P+A \nParlay 1: Joel Embiid O 38.5 PRA, Jalen Duren O 33.5 P+R \nParlay 2: Jalen Green O 23.5 P+A, Kon Knuppel O 22 P+A, Stephon Castle O 11.5 R+A \nLast night we cashed Parlay 1! Congrats to anyone that tailed. Another busy day researching for both NBA and MLB, this is the best time of the year. Would love to cash out ag"
     },
     "od0ju2w": {
-      "hash": "0dd0883520767d0a3276340d77ad3fc4",
+      "hash": "a0f66023dbee1a493b9e46e76a4469ce",
       "date": "2026-03-28",
-      "body_preview": "NBA Saturday Writeup \nPistons vs Timberwolves: Duren, Harris, and Thompson are all probable, Robinson is questionable. Dosunmu and McDaniels are out for the Wolves. No straight bets here. Without Dosunmu and McDaniels, the projected usage for Randle, DiVincenzo, Hyland, and Reid skyrockets. \n76ers vs Hornets: Maxey and Oubre are questionable for the 76ers. I\u2019m rolling with Embiid over 25.5 pts here (Fanatics Sportsbook). Embiid has cleared this mark in 7/L8 h2h matchups, as well as in 12/L13 gam"
+      "body_preview": "NBA Saturday Writeup \nPistons vs Timberwolves: Duren, Harris, and Thompson are all probable, Robinson is questionable. Dosunmu and McDaniels are out for the Wolves. No straight bets here. Without Dosunmu and McDaniels, the projected usage for Randle, DiVincenzo, Hyland, and Reid skyrockets. \n76ers vs Hornets: Maxey and Oubre are questionable for the 76ers. I\u2019m rolling with Embiid over 25.5 pts\u2705 here (Fanatics Sportsbook). Embiid has cleared this mark in 7/L8 h2h matchups, as well as in 12/L13 ga"
+    },
+    "od2rfkt": {
+      "hash": "2537114ea16b83c8f2b77cc2c6516554",
+      "date": "2026-03-29",
+      "body_preview": "Tip-off at 12:00 CT for Women\u2019s Tourney Sunday \nWNCAA Tourney 27-17 +15.6 units We go 2-2 Saturday +0.7 units \nWNCAA Conference Tourney 1-3 -2.1 Units \nLast Year WNCAA Tourney Record 36-25 +13.975 Units \nBarely positive, but we take it. TCU covered by the skin of their teeth. We now get 2 games Sunday and Monday for the Women\u2019s Elite 8. All the 1 seeds made it, and all of them are double digit favorites with UCONN getting a big spread. With the exception of Texas, we might be getting blowouts. \n"
     }
   },
   "sent_per_post": {
@@ -1974,7 +1997,8 @@
     "taraujo:1s5pfci": true,
     "novel_calendar5168:1s5pfci": true,
     "taraujo:1s5petv": true,
-    "novel_calendar5168:1s5petv": true
+    "novel_calendar5168:1s5petv": true,
+    "wnba_prodigy:1s6is88": true
   },
   "tracking_start": "2026-03-23",
   "stats": {
