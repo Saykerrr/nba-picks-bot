@@ -1,186 +1,5 @@
 {
-  "pending_bets": [
-    {
-      "id": "od2rfkt_0",
-      "user": "wnba_prodigy",
-      "date": "2026-03-29",
-      "sport": "ncaabb",
-      "post_title": "NCAABB College Basketball Betting and Picks - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6is88/ncaabb_college_basketball_betting_and_picks_32926/",
-      "description": "UCLA -11.5",
-      "player": null,
-      "team": "UCLA",
-      "opponent": "Duke",
-      "bet_type": "spread",
-      "stat": null,
-      "line": -11.5,
-      "direction": null,
-      "confidence": "3 units",
-      "result": null
-    },
-    {
-      "id": "od6dv97_0",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Paolo Banchero Over 13.5 RA",
-      "player": "Paolo Banchero",
-      "team": "ORL",
-      "opponent": "TOR",
-      "bet_type": "player_prop",
-      "stat": "RA",
-      "line": 13.5,
-      "direction": "over",
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "od6dv97_1",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Jayson Tatum Over 13.5 RA",
-      "player": "Jayson Tatum",
-      "team": "BOS",
-      "opponent": "CHA",
-      "bet_type": "player_prop",
-      "stat": "RA",
-      "line": 13.5,
-      "direction": "over",
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "od6dv97_2",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Shai Gilgeous-Alexander Over 30 PTS",
-      "player": "Shai Gilgeous-Alexander",
-      "team": "OKC",
-      "opponent": "NYK",
-      "bet_type": "player_prop",
-      "stat": "PTS",
-      "line": 30,
-      "direction": "over",
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "od6dv97_3",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Aaron Gordon Over 14.5 PTS",
-      "player": "Aaron Gordon",
-      "team": "DEN",
-      "opponent": "GSW",
-      "bet_type": "player_prop",
-      "stat": "PTS",
-      "line": 14.5,
-      "direction": "over",
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "od6dv97_4",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Parlay 1: Tatum Over 13.5 RA + LaMelo Ball Over 3.5 3PM",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "od6dv97_5",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Parlay 2: Scottie Barnes Over 13.5 RA + Donovan Clingan Over 13.5 REB",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "od6dv97_6",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Parlay 3: Coby White Over 20 PRA + Precious Achiuwa Over 24.5 PRA + Bilal Coulibaly Over 19.5 PRA",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "od6dv97_7",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Degen parlay: Dejounte Murray Over 27.5 PRA + Trey Murphy Over 4.5 REB + Josh Hart Over 6.5 REB + Aaron Gordon Over 13.5 PTS",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    },
-    {
-      "id": "od6dv97_8",
-      "user": "Novel_Calendar5168",
-      "date": "2026-03-29",
-      "sport": "nba",
-      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
-      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
-      "description": "Degen parlay 2: Derrick White Over 2.5 3PM + Saddiq Bey Over 2.5 3PM + OG Anunoby Over 2.5 3PM",
-      "player": null,
-      "team": null,
-      "opponent": null,
-      "bet_type": "parlay",
-      "stat": null,
-      "line": null,
-      "direction": null,
-      "confidence": "play",
-      "result": null
-    }
-  ],
+  "pending_bets": [],
   "graded_bets": [
     {
       "id": "oced4jz_0",
@@ -2177,6 +1996,262 @@
         }
       ],
       "graded_date": "2026-03-29"
+    },
+    {
+      "id": "od2rfkt_0",
+      "user": "wnba_prodigy",
+      "date": "2026-03-29",
+      "sport": "ncaabb",
+      "post_title": "NCAABB College Basketball Betting and Picks - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6is88/ncaabb_college_basketball_betting_and_picks_32926/",
+      "description": "UCLA -11.5",
+      "player": null,
+      "team": "UCLA",
+      "opponent": "Duke",
+      "bet_type": "spread",
+      "stat": null,
+      "line": -11.5,
+      "direction": null,
+      "confidence": "3 units",
+      "result": "unknown",
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_0",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Paolo Banchero Over 13.5 RA",
+      "player": "Paolo Banchero",
+      "team": "ORL",
+      "opponent": "TOR",
+      "bet_type": "player_prop",
+      "stat": "RA",
+      "line": 13.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": "loss",
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_1",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Jayson Tatum Over 13.5 RA",
+      "player": "Jayson Tatum",
+      "team": "BOS",
+      "opponent": "CHA",
+      "bet_type": "player_prop",
+      "stat": "RA",
+      "line": 13.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": "loss",
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_2",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Shai Gilgeous-Alexander Over 30 PTS",
+      "player": "Shai Gilgeous-Alexander",
+      "team": "OKC",
+      "opponent": "NYK",
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 30,
+      "direction": "over",
+      "confidence": "play",
+      "result": "push",
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_3",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Aaron Gordon Over 14.5 PTS",
+      "player": "Aaron Gordon",
+      "team": "DEN",
+      "opponent": "GSW",
+      "bet_type": "player_prop",
+      "stat": "PTS",
+      "line": 14.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": "dnp",
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_4",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Parlay 1: Tatum Over 13.5 RA + LaMelo Ball Over 3.5 3PM",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Tatum Over 13.5 RA",
+          "result": "loss"
+        },
+        {
+          "description": "LaMelo Ball Over 3.5 3PM",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_5",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Parlay 2: Scottie Barnes Over 13.5 RA + Donovan Clingan Over 13.5 REB",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Scottie Barnes Over 13.5 RA",
+          "result": "win"
+        },
+        {
+          "description": "Donovan Clingan Over 13.5 REB",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_6",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Parlay 3: Coby White Over 20 PRA + Precious Achiuwa Over 24.5 PRA + Bilal Coulibaly Over 19.5 PRA",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Coby White Over 20 PRA",
+          "result": "loss"
+        },
+        {
+          "description": "Precious Achiuwa Over 24.5 PRA",
+          "result": "win"
+        },
+        {
+          "description": "Bilal Coulibaly Over 19.5 PRA",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_7",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Degen parlay: Dejounte Murray Over 27.5 PRA + Trey Murphy Over 4.5 REB + Josh Hart Over 6.5 REB + Aaron Gordon Over 13.5 PTS",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Dejounte Murray Over 27.5 PRA",
+          "result": "win"
+        },
+        {
+          "description": "Trey Murphy Over 4.5 REB",
+          "result": "dnp"
+        },
+        {
+          "description": "Josh Hart Over 6.5 REB",
+          "result": "loss"
+        },
+        {
+          "description": "Aaron Gordon Over 13.5 PTS",
+          "result": "dnp"
+        }
+      ],
+      "graded_date": "2026-03-30"
+    },
+    {
+      "id": "od6dv97_8",
+      "user": "Novel_Calendar5168",
+      "date": "2026-03-29",
+      "sport": "nba",
+      "post_title": "NBA Props Daily - 3/29/26 (Sunday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s6k2ln/nba_props_daily_32926_sunday/",
+      "description": "Degen parlay 2: Derrick White Over 2.5 3PM + Saddiq Bey Over 2.5 3PM + OG Anunoby Over 2.5 3PM",
+      "player": null,
+      "team": null,
+      "opponent": null,
+      "bet_type": "parlay",
+      "stat": null,
+      "line": null,
+      "direction": null,
+      "confidence": "play",
+      "result": "loss",
+      "leg_results": [
+        {
+          "description": "Derrick White Over 2.5 3PM",
+          "result": "loss"
+        },
+        {
+          "description": "Saddiq Bey Over 2.5 3PM",
+          "result": "win"
+        },
+        {
+          "description": "OG Anunoby Over 2.5 3PM",
+          "result": "loss"
+        }
+      ],
+      "graded_date": "2026-03-30"
     }
   ],
   "seen_comments": {
@@ -2302,10 +2377,10 @@
     },
     "Novel_Calendar5168": {
       "straight_wins": 20,
-      "straight_losses": 5,
-      "straight_pushes": 0,
+      "straight_losses": 7,
+      "straight_pushes": 1,
       "parlay_wins": 7,
-      "parlay_losses": 17
+      "parlay_losses": 22
     },
     "wnba_prodigy": {
       "straight_wins": 0,
