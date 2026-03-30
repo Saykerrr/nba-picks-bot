@@ -251,6 +251,60 @@
       "direction": null,
       "confidence": "play",
       "result": null
+    },
+    {
+      "id": "odd2q21_0",
+      "user": "taraujo",
+      "date": "2026-03-30",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/30/26 (Monday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s7f9vk/mlb_props_and_home_run_picks_33026_monday/",
+      "description": "Chase Burns Under 7 K's",
+      "player": "Chase Burns",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "K",
+      "line": 7,
+      "direction": "under",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "odd2q21_1",
+      "user": "taraujo",
+      "date": "2026-03-30",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/30/26 (Monday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s7f9vk/mlb_props_and_home_run_picks_33026_monday/",
+      "description": "Kyle Harrison Over 1.5 Earned Runs Allowed",
+      "player": "Kyle Harrison",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "ER",
+      "line": 1.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
+    },
+    {
+      "id": "odd2q21_2",
+      "user": "taraujo",
+      "date": "2026-03-30",
+      "sport": "mlb",
+      "post_title": "MLB Props and Home Run Picks - 3/30/26 (Monday)",
+      "post_url": "https://www.reddit.com/r/sportsbook/comments/1s7f9vk/mlb_props_and_home_run_picks_33026_monday/",
+      "description": "Byron Buxton Over 1.5 Bases",
+      "player": "Byron Buxton",
+      "team": null,
+      "opponent": null,
+      "bet_type": "player_prop",
+      "stat": "TB",
+      "line": 1.5,
+      "direction": "over",
+      "confidence": "play",
+      "result": null
     }
   ],
   "graded_bets": [
@@ -2612,6 +2666,11 @@
       "hash": "541311574c30a183518024836aef430f",
       "date": "2026-03-30",
       "body_preview": "NBA Monday Night Writeup \n76ers vs Heat: Powell is questionable for Miami. This could definitely be a big game from Embiid and Maxey, especially with the O/U sitting at 245, but I\u2019ll be betting this one live if anything. It\u2019s worth noting that Andrew Wiggins has scored 15+ pts in seven straight matchups, so if you want to take him today, I don't mind it. I'd lean Maxey's pts if anything here if you need a straight bet for this one - off it personally.  \nCeltics vs Hawks: White and Brown are ques"
+    },
+    "odd2q21": {
+      "hash": "6f94aa58974dc7952ba229fb4f8f2810",
+      "date": "2026-03-30",
+      "body_preview": "Monday, March 30th MLB Betting Card \u26be\ufe0f  \nSeason Record 17-14 \nHR Record: 2-18 \nMookie Betts O 1.5 Hits + Runs + RBIs \nColson Montgomery O 1.5 Hits + Runs + RBIs \nChase DeLauter O 1.5 Hits + Runs + RBIs \nCorey Seager O 1.5 Hits + Runs + RBIs \nChase Burns U 7 K\u2019s \nKyle Harrison O 1.5 Earned Runs Allowed \nWilyer Abreu O 1.5 Hits + Runs + RBIs \nByron Buxton O 1.5 Bases \nParlay 1: Mookie Betts O 1.5 Hits + Runs + RBIs, Colson Montgomery O 1.5 Hits + Runs + RBIs, Chase DeLauter O 1.5 Hits + Runs + RBI"
     }
   },
   "sent_per_post": {
@@ -2635,7 +2694,8 @@
     "novel_calendar5168:1s6k2ln": true,
     "wnba_prodigy:1s7f9la": true,
     "novel_calendar5168:1s7f9vk": true,
-    "novel_calendar5168:1s7f69x": true
+    "novel_calendar5168:1s7f69x": true,
+    "taraujo:1s7f9vk": true
   },
   "tracking_start": "2026-03-23",
   "stats": {
